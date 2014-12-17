@@ -1,12 +1,17 @@
 package edu.ist.symber.monitor;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Random;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -58,12 +63,20 @@ public class Monitor {
 														// version for monitors)
 
 	// ** data structures for tracing log file events
-	// public static Map<String,LinkedList<Pair<Integer,Integer>>> readLog;
-	// public static Map<String,LinkedList<Pair<Integer,Integer>>> writeLog;
 	public static Map<String, LinkedList<Pair<Integer, Integer>>> lockLog;
 	public static Map<String, LinkedList<Event>> readLog;
 	public static Map<String, LinkedList<Event>> writeLog;
-	// public static Map<String, LinkedList<Event>> lockLog;
+	final static String WRITE_LOGS_DIRECTORY = "write-logs";
+	final static String READ_LOGS_DIRECTORY = "read-logs";
+	final static String LOCK_LOG_DIRECTORY = "lock-logs";
+	final static String CONFLICT_LOG_DIRECTORY = "conflict-log";
+	final static String WRITE_LOG_FILE_NAME = "write-log";
+	final static String READ_LOG_FILE_NAME = "read-log";
+	final static String LOCK_LOG_FILE_NAME = "lock-log";
+	final static String CONFLICT_LOG_FILE_NAME = "conflict-log";
+	final static String FILE_EXTENSION = ".txt";
+	final static Charset ENCODING = StandardCharsets.UTF_8;
+	PrintWriter logger;
 
 	public static Map<Integer, Lock> locks;
 
@@ -514,16 +527,22 @@ public class Monitor {
 		System.out.println("--- crashed! ---" + crashedException);
 	}
 
-	public static String saveMonitorData(String appname) {
+	public static void saveMonitorData(String appname)
+			throws FileNotFoundException {
 		String traceFile_ = null;
-		File traceFile_monitordata = null;
-		ObjectOutputStream fw_monitordata;
+		//File traceFile_monitordata = null;
+		//ObjectOutputStream fw_monitordata;
 		Map<String, LinkedList<String>> conflictLog = new HashMap<String, LinkedList<String>>();
-		// Map<String, Integer> conflictLog = new HashMap<String, Integer>();
 
 		for (Entry<String, LinkedList<Event>> entry : writeLog.entrySet()) {
 			String key = entry.getKey();
+			File file = new File(WRITE_LOGS_DIRECTORY);
+			file.mkdirs();
+			PrintWriter printWriter = new PrintWriter(WRITE_LOGS_DIRECTORY
+					+ File.separator + WRITE_LOG_FILE_NAME + key
+					+ FILE_EXTENSION);
 			for (Event event : entry.getValue()) {
+				printWriter.println(event);
 				String fieldVersionKey = event.getFieldId() + ":"
 						+ event.getVersion();
 				Integer counter = 1;
@@ -540,8 +559,40 @@ public class Monitor {
 					// conflictLog.put(fieldVersionKey, counter);
 				}
 			}
+			printWriter.close();
 		}
 
+		for (Entry<String, LinkedList<Event>> entry : readLog.entrySet()) {
+			String key = entry.getKey();
+			File file = new File(READ_LOGS_DIRECTORY);
+			file.mkdirs();
+			PrintWriter printWriter = new PrintWriter(READ_LOGS_DIRECTORY
+					+ File.separator + READ_LOG_FILE_NAME + key
+					+ FILE_EXTENSION);
+			for (Event event : entry.getValue()) {
+				printWriter.println(event);
+			}
+			printWriter.close();
+		}
+
+		for (Entry<String, LinkedList<Pair<Integer, Integer>>> entry : lockLog
+				.entrySet()) {
+			String key = entry.getKey();
+			File file = new File(LOCK_LOG_DIRECTORY);
+			file.mkdirs();
+			PrintWriter printWriter = new PrintWriter(LOCK_LOG_DIRECTORY
+					+ File.separator + LOCK_LOG_FILE_NAME + key
+					+ FILE_EXTENSION);
+			for (Pair<Integer, Integer> pair : entry.getValue()) {
+				printWriter.println(pair);
+			}
+			printWriter.close();
+		}
+
+		File file = new File(CONFLICT_LOG_DIRECTORY);
+		file.mkdirs();
+		PrintWriter printWriter = new PrintWriter(CONFLICT_LOG_DIRECTORY
+				+ File.separator + CONFLICT_LOG_FILE_NAME + FILE_EXTENSION);
 		for (Entry<String, LinkedList<String>> entry : conflictLog.entrySet()) {
 			LinkedList<String> value = entry.getValue();
 			if (value.size() > 1) {
@@ -551,10 +602,10 @@ public class Monitor {
 				for (String s : value) {
 					sb.append(s + " ");
 				}
-				System.out.println(sb.toString());
+				printWriter.println(sb.toString());
 			}
-
 		}
+		printWriter.close();
 
 		// ** save Runtime Information
 		/*
@@ -572,7 +623,8 @@ public class Monitor {
 		 * 
 		 * } catch (IOException e) { e.printStackTrace(); }
 		 */
-		return traceFile_;
+
+		//return traceFile_;
 	}
 
 	public static void generateTestDriver(String traceFile_) {
