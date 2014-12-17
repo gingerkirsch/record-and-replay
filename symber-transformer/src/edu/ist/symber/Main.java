@@ -7,12 +7,17 @@ public class Main {
 	private static String trans_classname = "edu.ist.symber.transformer.SymberTransform";
 
 	public static void main(String[] args) {
+		long tStart = System.currentTimeMillis();
 		if (args.length == 0) {
 			System.err.println("please specify the main class ... ");
 		} else {
 			transform(args);
 		}
-
+		long tEnd = System.currentTimeMillis();
+		long tDelta = tEnd - tStart;
+		double elapsedSeconds = tDelta / 1000.0;
+		System.out.println("Overall time of transforming: " + elapsedSeconds
+				+ "sec");
 	}
 
 	private static void transform(String[] args) {

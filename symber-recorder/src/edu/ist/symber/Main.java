@@ -13,6 +13,7 @@ public class Main {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		long tStart = System.currentTimeMillis();
 		List<String> arg = new LinkedList(Arrays.asList(args));
 		int len = arg.size();
 		if (len == 0) {
@@ -20,6 +21,11 @@ public class Main {
 		} else {
 			process(arg);
 		}
+		long tEnd = System.currentTimeMillis();
+		long tDelta = tEnd - tStart;
+		double elapsedSeconds = tDelta / 1000.0;
+		System.out.println("Overall time of recording: " + elapsedSeconds
+				+ "sec");
 	}
 
 	private static void process(List<String> args) {
