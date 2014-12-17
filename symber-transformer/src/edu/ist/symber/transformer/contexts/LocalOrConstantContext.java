@@ -35,20 +35,23 @@ public interface LocalOrConstantContext extends LocalContext {// extends
 																// RHSContext,
 																// SpecialContext
 																// {
-// final public static int RHSFirstContext = 16;
-// final public static int RHSSecondContext = 17;
-// final public static int IfFirstContext = 18;
-// final public static int IfSecondContext = 19;
-// final public static int InvokeAndAssignTargetContextImpl = 20;
-// final public static int InvokeAndAssignArgumentContext = 21;
-// final public static int InvokeOnlyTargetContext = 22;
-// final public static int InvokeOnlyArgumentContext = 23;
-// final public static int LengthContext = 24;
-// final public static int NegContext = 25;
-// final public static int EnterMonitorContext = 26;
-// final public static int ExitMonitorContext = 27;
-// final public static int LookupSwitchContext = 28;
-// final public static int TableSwitchContext = 29;
-// final public static int ReturnContext = 30;
-// final public static int ThrowContext = 31;
+																// final public
+																// static int
+																// RHSFirstContext
+																// = 16;
+	// final public static int RHSSecondContext = 17;
+	// final public static int IfFirstContext = 18;
+	// final public static int IfSecondContext = 19;
+	// final public static int InvokeAndAssignTargetContextImpl = 20;
+	// final public static int InvokeAndAssignArgumentContext = 21;
+	// final public static int InvokeOnlyTargetContext = 22;
+	// final public static int InvokeOnlyArgumentContext = 23;
+	// final public static int LengthContext = 24;
+	// final public static int NegContext = 25;
+	// final public static int EnterMonitorContext = 26;
+	// final public static int ExitMonitorContext = 27;
+	// final public static int LookupSwitchContext = 28;
+	// final public static int TableSwitchContext = 29;
+	// final public static int ReturnContext = 30;
+	// final public static int ThrowContext = 31;
 }

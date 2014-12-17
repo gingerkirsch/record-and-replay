@@ -33,8 +33,14 @@ package edu.ist.symber.transformer.contexts;
 
 public interface SpecialContext extends TypeContext, LocalOrConstantContext {// Context
 																				// {
-// final public static int CastContext = 5;
-// final public static int InstanceOfContext = 6;
-// final public static int NewArrayContext = 7;
-// final public static int NewMultiArrayContext = 9;
+																				// final
+																				// public
+																				// static
+																				// int
+																				// CastContext
+																				// =
+																				// 5;
+	// final public static int InstanceOfContext = 6;
+	// final public static int NewArrayContext = 7;
+	// final public static int NewMultiArrayContext = 9;
 }
