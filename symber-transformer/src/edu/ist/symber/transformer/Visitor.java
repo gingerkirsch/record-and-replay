@@ -11,6 +11,8 @@ import soot.util.Chain;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import edu.ist.symber.Parameters;
 import edu.ist.symber.Util;
@@ -1232,34 +1234,139 @@ public class Visitor {
 			Value base = ((InstanceFieldRef) s.getFieldRef()).getBase();
 			LinkedList args = new LinkedList();
 			args.addLast(base);
-
 			args.addLast(getMethodThreadName(sm));
-			IntConstant.v(getSPEIndex(spe)); // ** used only to increment the
-												// counter of shared vars
 
-			SootMethodRef mrBefore = Scene
-					.v()
-					.getMethod(
-							"<" + observerClass + ": void " + methodNameBefore
-									+ "(java.lang.Object,java.lang.String)>")
-					.makeRef();
-			units.insertBefore(
-					Jimple.v().newInvokeStmt(
-							Jimple.v().newStaticInvokeExpr(mrBefore, args)), s);
+			String pattern = "(before|after)(Load|Store)";
+			Pattern r = Pattern.compile(pattern);
+			Matcher m = r.matcher(methodNameBefore);
+			if (m.find()) {
+				System.out.println("STMT: " + s);
+				String type = s.getDefBoxes().get(0).getValue().getType()
+						.toString();
+				System.out.println("type (read): " + type);
+				Value value = ((AssignStmt) s).getLeftOp();
 
-			String methodNameAfter = methodNameBefore
-					.replace("before", "after");
-			SootMethodRef mrAfter = Scene
-					.v()
-					.getMethod(
-							"<" + observerClass + ": void " + methodNameAfter
-									+ "(java.lang.Object,java.lang.String)>")
-					.makeRef();
-			units.insertAfter(
-					Jimple.v().newInvokeStmt(
-							Jimple.v().newStaticInvokeExpr(mrAfter, args)), s); // */
+				// for write operations, we have to obtain the right operand
+				if (methodNameBefore.contains("Store")) {
+					value = ((AssignStmt) s).getRightOp();
+					type = value.getType().toString();
+					System.out.println("type (write): " + type);
+				}
+
+				args.addLast(value);
+				System.out.println("value added to args: " + value);
+
+				SootMethodRef mrBefore = Scene
+						.v()
+						.getMethod(
+								"<"
+										+ observerClass
+										+ ": void "
+										+ methodNameBefore
+										+ "(java.lang.Object,java.lang.String,java.lang.Object)>")
+						.makeRef();
+				String methodNameAfter = methodNameBefore.replace("before",
+						"after");
+				SootMethodRef mrAfter = Scene
+						.v()
+						.getMethod(
+								"<"
+										+ observerClass
+										+ ": void "
+										+ methodNameAfter
+										+ "(java.lang.Object,java.lang.String,java.lang.Object)>")
+						.makeRef();
+
+				if (type.equals("int")) {
+					mrAfter = Scene
+							.v()
+							.getMethod(
+									"<"
+											+ observerClass
+											+ ": void "
+											+ methodNameAfter
+											+ "(java.lang.Object,java.lang.String,int)>")
+							.makeRef();
+					mrBefore = Scene
+							.v()
+							.getMethod(
+									"<"
+											+ observerClass
+											+ ": void "
+											+ methodNameBefore
+											+ "(java.lang.Object,java.lang.String,int)>")
+							.makeRef();
+				} else if (type.equals("boolean")) {
+					mrAfter = Scene
+							.v()
+							.getMethod(
+									"<"
+											+ observerClass
+											+ ": void "
+											+ methodNameAfter
+											+ "(java.lang.Object,java.lang.String,boolean)>")
+							.makeRef();
+					mrBefore = Scene
+							.v()
+							.getMethod(
+									"<"
+											+ observerClass
+											+ ": void "
+											+ methodNameBefore
+											+ "(java.lang.Object,java.lang.String,boolean)>")
+							.makeRef();
+				}
+				System.out.println("BEFORE: " + mrBefore);
+				System.out.println("AFTER: " + mrAfter + "\n");
+				if (methodNameBefore.contains("Store")) {
+					// for stores we only instrument with the value before the
+					// write operation
+					units.insertBefore(
+							Jimple.v().newInvokeStmt(
+									Jimple.v().newStaticInvokeExpr(mrBefore,
+											args)), s);
+
+					args.removeLast();
+					mrAfter = Scene
+							.v()
+							.getMethod(
+									"<"
+											+ observerClass
+											+ ": void "
+											+ methodNameAfter
+											+ "(java.lang.Object,java.lang.String)>")
+							.makeRef();
+					units.insertAfter(
+							Jimple.v().newInvokeStmt(
+									Jimple.v().newStaticInvokeExpr(mrAfter,
+											args)), s);
+				} else {
+					// for loads we only instrument with the value after the
+					// read operation
+					units.insertAfter(
+							Jimple.v().newInvokeStmt(
+									Jimple.v().newStaticInvokeExpr(mrAfter,
+											args)), s);
+
+					args.removeLast();
+					mrBefore = Scene
+							.v()
+							.getMethod(
+									"<"
+											+ observerClass
+											+ ": void "
+											+ methodNameBefore
+											+ "(java.lang.Object,java.lang.String)>")
+							.makeRef();
+					units.insertBefore(
+							Jimple.v().newInvokeStmt(
+									Jimple.v().newStaticInvokeExpr(mrBefore,
+											args)), s);
+				}
+			}
 		} else
 			addCallAccessSPEStatic(sm, units, s, methodNameBefore, spe);
+
 	}
 
 	/**
@@ -1277,25 +1384,125 @@ public class Visitor {
 		LinkedList args = new LinkedList();
 		args.addLast(IntConstant.v(getSPEIndex(v)));
 		args.addLast(getMethodThreadName(sm));
+		String pattern = "(before|after)(Load|Store)";
+		Pattern r = Pattern.compile(pattern);
+		Matcher m = r.matcher(methodNameBefore);
+		if (m.find()) {
+			String type = s.getDefBoxes().get(0).getValue().getType()
+					.toString();
+			System.out.println("STMT: " + s);
+			System.out.println("type (read): " + type);
+			Value value = ((AssignStmt) s).getLeftOp();
 
-		SootMethodRef mrBefore = Scene
-				.v()
-				.getMethod(
-						"<" + observerClass + ": void " + methodNameBefore
-								+ "(int,java.lang.String)>").makeRef();
-		units.insertBefore(
-				Jimple.v().newInvokeStmt(
-						Jimple.v().newStaticInvokeExpr(mrBefore, args)), s);
+			// for write operations, we have to obtain the right operand
+			if (methodNameBefore.contains("Store")) {
+				value = ((AssignStmt) s).getRightOp();
+				type = value.getType().toString();
+				System.out.println("type (write): " + type);
+			}
 
-		String methodNameAfter = methodNameBefore.replace("before", "after");
-		SootMethodRef mrAfter = Scene
-				.v()
-				.getMethod(
-						"<" + observerClass + ": void " + methodNameAfter
-								+ "(int,java.lang.String)>").makeRef();
-		units.insertAfter(
-				Jimple.v().newInvokeStmt(
-						Jimple.v().newStaticInvokeExpr(mrAfter, args)), s);
+			// Value value = s.getDefBoxes().get(0).getValue();
+			args.addLast((Object) value);
+			System.out.println("value added to args: " + value);
+			// System.out.println("-------END: Analyzing value from Stmt-------");
+			// SootMethodRef mrBefore =
+
+			SootMethodRef mrBefore = Scene
+					.v()
+					.getMethod(
+							"<"
+									+ observerClass
+									+ ": void "
+									+ methodNameBefore
+									+ "(int,java.lang.String,java.lang.Object)>")
+					.makeRef();
+			String methodNameAfter = methodNameBefore
+					.replace("before", "after");
+			SootMethodRef mrAfter = Scene
+					.v()
+					.getMethod(
+							"<"
+									+ observerClass
+									+ ": void "
+									+ methodNameAfter
+									+ "(int,java.lang.String,java.lang.Object)>")
+					.makeRef();
+
+			if (type.equals("int")) {
+				mrBefore = Scene
+						.v()
+						.getMethod(
+								"<" + observerClass + ": void "
+										+ methodNameBefore
+										+ "(int,java.lang.String,int)>")
+						.makeRef();
+				mrAfter = Scene
+						.v()
+						.getMethod(
+								"<" + observerClass + ": void "
+										+ methodNameAfter
+										+ "(int,java.lang.String,int)>")
+						.makeRef();
+
+			} else if (type.equals("boolean")) {
+				mrBefore = Scene
+						.v()
+						.getMethod(
+								"<" + observerClass + ": void "
+										+ methodNameBefore
+										+ "(int,java.lang.String,boolean)>")
+						.makeRef();
+				mrAfter = Scene
+						.v()
+						.getMethod(
+								"<" + observerClass + ": void "
+										+ methodNameAfter
+										+ "(int,java.lang.String,boolean)>")
+						.makeRef();
+			}
+
+			System.out.println("BEFORE: " + mrBefore);
+			System.out.println("AFTER: " + mrAfter + "\n");
+			if (methodNameBefore.contains("Store")) {
+				// for stores we only instrument with the value before the write
+				// operation
+				units.insertBefore(
+						Jimple.v().newInvokeStmt(
+								Jimple.v().newStaticInvokeExpr(mrBefore, args)),
+						s);
+
+				args.removeLast();
+				mrAfter = Scene
+						.v()
+						.getMethod(
+								"<" + observerClass + ": void "
+										+ methodNameAfter
+										+ "(int,java.lang.String)>").makeRef();
+				units.insertAfter(
+						Jimple.v().newInvokeStmt(
+								Jimple.v().newStaticInvokeExpr(mrAfter, args)),
+						s);
+			} else {
+				// for loads we only instrument with the value after the read
+				// operation
+				units.insertAfter(
+						Jimple.v().newInvokeStmt(
+								Jimple.v().newStaticInvokeExpr(mrAfter, args)),
+						s);
+
+				args.removeLast();
+				mrBefore = Scene
+						.v()
+						.getMethod(
+								"<" + observerClass + ": void "
+										+ methodNameBefore
+										+ "(int,java.lang.String)>").makeRef();
+				units.insertBefore(
+						Jimple.v().newInvokeStmt(
+								Jimple.v().newStaticInvokeExpr(mrBefore, args)),
+						s);
+			}
+		}
 	}
 
 	/**

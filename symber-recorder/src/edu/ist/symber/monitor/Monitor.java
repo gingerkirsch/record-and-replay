@@ -4,8 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import edu.ist.symber.Util;
 import edu.ist.symber.common.Pair;
@@ -35,6 +39,8 @@ public class Monitor {
 																			// children
 																			// threads
 																			// spawned
+
+	// ** data structures for maintaining runtime state
 	public static Map<Thread, String> MapBackupThreadName; // ** used to keep
 															// the thread name
 															// consistent during
@@ -45,13 +51,30 @@ public class Monitor {
 															// program after the
 															// thread
 															// initialization)
+	public static Map<Integer, Integer> objVersions; // ** map: field id ->
+														// version (i.e. write
+														// version for shared
+														// variables and sync
+														// version for monitors)
 
 	// ** data structures for tracing log file events
-	// CODE HERE - DEFINE THE NECESSARY DATA STRUCTURES
+	// public static Map<String,LinkedList<Pair<Integer,Integer>>> readLog;
+	// public static Map<String,LinkedList<Pair<Integer,Integer>>> writeLog;
+	public static Map<String, LinkedList<Pair<Integer, Integer>>> lockLog;
+	public static Map<String, LinkedList<Event>> readLog;
+	public static Map<String, LinkedList<Event>> writeLog;
+	// public static Map<String, LinkedList<Event>> lockLog;
+
+	public static Map<Integer, Lock> locks;
 
 	public static void initialize() {
 		threadChildrenCounter = new HashMap<String, Integer>();
 		MapBackupThreadName = new HashMap<Thread, String>();
+		readLog = new HashMap<String, LinkedList<Event>>();
+		writeLog = new HashMap<String, LinkedList<Event>>();
+		lockLog = new HashMap<String, LinkedList<Pair<Integer, Integer>>>();
+		objVersions = new HashMap<Integer, Integer>();
+		locks = new HashMap<Integer, Lock>();
 	}
 
 	// ** for instance fields
@@ -59,12 +82,53 @@ public class Monitor {
 		beforeLoad(System.identityHashCode(fieldId), threadId);
 	}
 
-	public static void afterLoad(Object fieldId, String threadId) {
-		afterLoad(System.identityHashCode(fieldId), threadId);
+	public static void beforeLoad(Object fieldId, String threadId, int value) {
+		beforeLoad(System.identityHashCode(fieldId), threadId, value);
 	}
 
-	public static void beforeStore(Object fieldId, String threadId) {
-		beforeStore(System.identityHashCode(fieldId), threadId);
+	public static void afterLoad(Object fieldId, String threadId, int value) {
+		afterLoad(System.identityHashCode(fieldId), threadId, value);
+	}
+
+	public static void beforeLoad(Object fieldId, String threadId, boolean value) {
+		beforeLoad(System.identityHashCode(fieldId), threadId, value);
+	}
+
+	public static void afterLoad(Object fieldId, String threadId, boolean value) {
+		afterLoad(System.identityHashCode(fieldId), threadId, value);
+	}
+
+	public static void beforeLoad(Object fieldId, String threadId, Object value) {
+		beforeLoad(System.identityHashCode(fieldId), threadId, value);
+	}
+
+	public static void afterLoad(Object fieldId, String threadId, Object value) {
+		afterLoad(System.identityHashCode(fieldId), threadId, value);
+	}
+
+	public static void beforeStore(Object fieldId, String threadId, int value) {
+		beforeStore(System.identityHashCode(fieldId), threadId, value);
+	}
+
+	public static void afterStore(Object fieldId, String threadId, int value) {
+		afterStore(System.identityHashCode(fieldId), threadId, value);
+	}
+
+	public static void beforeStore(Object fieldId, String threadId,
+			boolean value) {
+		beforeStore(System.identityHashCode(fieldId), threadId, value);
+	}
+
+	public static void afterStore(Object fieldId, String threadId, boolean value) {
+		afterStore(System.identityHashCode(fieldId), threadId, value);
+	}
+
+	public static void beforeStore(Object fieldId, String threadId, Object value) {
+		beforeStore(System.identityHashCode(fieldId), threadId, value);
+	}
+
+	public static void afterStore(Object fieldId, String threadId, Object value) {
+		afterStore(System.identityHashCode(fieldId), threadId, value);
 	}
 
 	public static void afterStore(Object fieldId, String threadId) {
@@ -77,8 +141,18 @@ public class Monitor {
 	 * 
 	 * @param fieldId
 	 * @param threadId
+	 * @param value
 	 */
 	public static void beforeLoad(int fieldId, String threadId) {
+	}
+
+	public static void beforeLoad(int fieldId, String threadId, int value) {
+	}
+
+	public static void beforeLoad(int fieldId, String threadId, boolean value) {
+	}
+
+	public static void beforeLoad(int fieldId, String threadId, Object value) {
 	}
 
 	/**
@@ -86,10 +160,63 @@ public class Monitor {
 	 * 
 	 * @param fieldId
 	 * @param threadId
+	 * @param value
 	 */
-	public static void afterLoad(int fieldId, String threadId) {
+	public static void afterLoad(int fieldId, String threadId, int value) {
 		try {
-			// CODE HERE - HANLDE READ OPERATIONS
+			int version = 0;
+			if (!objVersions.containsKey(fieldId)) {
+				objVersions.put(fieldId, version);
+			} else {
+				version = objVersions.get(fieldId);
+			}
+			readLog.get(Thread.currentThread().getName()).add(
+					new Event(fieldId, version, value));
+			System.out.println("[" + threadId + "] Read INT with value:"
+					+ value + " (version W" + version + ")");
+			// System.out.println("["+threadId+"] "+fieldId+"-R"+version);
+
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	public static void afterLoad(int fieldId, String threadId, boolean value) {
+		try {
+			int version = 0;
+			if (!objVersions.containsKey(fieldId)) {
+				objVersions.put(fieldId, version);
+			} else {
+				version = objVersions.get(fieldId);
+			}
+			readLog.get(Thread.currentThread().getName()).add(
+					new Event(fieldId, version, value));
+			// readLog.get(Thread.currentThread().getName()).add(new
+			// Pair<Integer, Integer>(fieldId,version));
+			System.out.println("[" + threadId + "] Read BOOLEAN with value:"
+					+ value + " (version W" + version + ")");
+			// System.out.println("["+threadId+"] "+fieldId+"-R"+version);
+
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	public static void afterLoad(int fieldId, String threadId, Object value) {
+		try {
+			int version = 0;
+			if (!objVersions.containsKey(fieldId)) {
+				objVersions.put(fieldId, version);
+			} else {
+				version = objVersions.get(fieldId);
+			}
+			readLog.get(Thread.currentThread().getName()).add(
+					new Event(fieldId, version, value));
+			System.out.println("[" + threadId + "] Read OBJECT with value:"
+					+ value + " (version W" + version + ")");
+			// System.out.println("["+threadId+"] "+fieldId+"-R"+version);
 
 		} catch (Exception e) {
 			System.err.println(">> Monitor_ERROR: " + e.getMessage());
@@ -102,10 +229,30 @@ public class Monitor {
 	 * 
 	 * @param fieldId
 	 * @param threadId
+	 * @param value
 	 */
-	public static void beforeStore(int fieldId, String threadId) {
+	public static void beforeStore(int fieldId, String threadId, int value) {
+		if (locks.containsKey(Integer.valueOf(fieldId))) {
+			locks.get(Integer.valueOf(fieldId)).lock();
+		} else {
+			locks.put(Integer.valueOf(fieldId), new ReentrantLock());
+			locks.get(Integer.valueOf(fieldId)).lock();
+		}
 		try {
-			// CODE HERE - HANLDE WRITE OPERATIONS
+			int version = 0;
+			if (!objVersions.containsKey(fieldId)) {
+				objVersions.put(fieldId, version);
+			} else {
+				version = objVersions.get(fieldId);
+				version++;
+				objVersions.put(fieldId, version);
+			}
+			writeLog.get(Thread.currentThread().getName()).add(
+					new Event(fieldId, version, value));
+			// writeLog.get(Thread.currentThread().getName()).add(new
+			// Pair<Integer, Integer>(fieldId,version));
+			System.out
+					.println("[" + threadId + "] " + fieldId + "-W" + version);
 
 		} catch (Exception e) {
 			System.err.println(">> Monitor_ERROR: " + e.getMessage());
@@ -113,13 +260,78 @@ public class Monitor {
 		}
 	}
 
-	/**
-	 * Recording store (writes) memory access operations
-	 * 
-	 * @param fieldId
-	 * @param threadId
-	 */
+	public static void beforeStore(int fieldId, String threadId, boolean value) {
+		if (locks.containsKey(Integer.valueOf(fieldId))) {
+			locks.get(Integer.valueOf(fieldId)).lock();
+		} else {
+			locks.put(Integer.valueOf(fieldId), new ReentrantLock());
+			locks.get(Integer.valueOf(fieldId)).lock();
+		}
+		try {
+			int version = 0;
+			if (!objVersions.containsKey(fieldId)) {
+				objVersions.put(fieldId, version);
+			} else {
+				version = objVersions.get(fieldId);
+				version++;
+				objVersions.put(fieldId, version);
+			}
+			writeLog.get(Thread.currentThread().getName()).add(
+					new Event(fieldId, version, value));
+			// writeLog.get(Thread.currentThread().getName()).add(new
+			// Pair<Integer, Integer>(fieldId,version));
+			System.out
+					.println("[" + threadId + "] " + fieldId + "-W" + version);
+
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	public static void beforeStore(int fieldId, String threadId, Object value) {
+		if (locks.containsKey(Integer.valueOf(fieldId))) {
+			locks.get(Integer.valueOf(fieldId)).lock();
+		} else {
+			locks.put(Integer.valueOf(fieldId), new ReentrantLock());
+			locks.get(Integer.valueOf(fieldId)).lock();
+		}
+		try {
+			int version = 0;
+			if (!objVersions.containsKey(fieldId)) {
+				objVersions.put(fieldId, version);
+			} else {
+				version = objVersions.get(fieldId);
+				version++;
+				objVersions.put(fieldId, version);
+			}
+			writeLog.get(Thread.currentThread().getName()).add(
+					new Event(fieldId, version, value));
+			// writeLog.get(Thread.currentThread().getName()).add(new
+			// Pair<Integer, Integer>(fieldId,version));
+			System.out
+					.println("[" + threadId + "] " + fieldId + "-W" + version);
+
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	public static void afterStore(int fieldId, String threadId, int value) {
+		locks.get(Integer.valueOf(fieldId)).unlock();
+	}
+
+	public static void afterStore(int fieldId, String threadId, boolean value) {
+		locks.get(Integer.valueOf(fieldId)).unlock();
+	}
+
+	public static void afterStore(int fieldId, String threadId, Object value) {
+		locks.get(Integer.valueOf(fieldId)).unlock();
+	}
+
 	public static void afterStore(int fieldId, String threadId) {
+		locks.get(Integer.valueOf(fieldId)).unlock();
 	}
 
 	// ** for static monitors
@@ -144,6 +356,12 @@ public class Monitor {
 	 */
 	public static void beforeConditionEnter(Object lock, Object cond,
 			int monitorId, String threadId, String monitorName) {
+		try {
+
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -157,6 +375,12 @@ public class Monitor {
 	 */
 	public static void afterConditionEnter(Object lock, Object cond,
 			int monitorId, String threadId, String monitorName) {
+		try {
+
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -179,6 +403,24 @@ public class Monitor {
 	 */
 	public static void afterMonitorEnter(Object o, int monitorId,
 			String threadId, String monitorName) {
+		try {
+			int version = 0;
+			if (!objVersions.containsKey(monitorId)) {
+				objVersions.put(monitorId, version);
+			} else {
+				version = objVersions.get(monitorId);
+				version++;
+				objVersions.put(monitorId, version);
+			}
+			lockLog.get(threadId).add(
+					new Pair<Integer, Integer>(monitorId, version));
+			System.out.println("[" + threadId + "] " + monitorId + "-L"
+					+ version);
+
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
 	public static void exitMonitor(Object o, int monitorId, String threadId,
@@ -195,6 +437,10 @@ public class Monitor {
 
 			// **to generate deterministic thread identifiers
 			threadChildrenCounter.put("0", 1);
+			readLog.put(mainthreadname, new LinkedList<Event>());
+			writeLog.put(mainthreadname, new LinkedList<Event>());
+			lockLog.put(mainthreadname,
+					new LinkedList<Pair<Integer, Integer>>());
 
 		} catch (Exception e) {
 			System.err.println(">> Monitor_ERROR: " + e.getMessage());
@@ -212,6 +458,10 @@ public class Monitor {
 	public static void threadStartRun(String threadId) {
 		try {
 			threadChildrenCounter.put(threadId, 1);
+			readLog.put(threadId, new LinkedList<Event>());
+			writeLog.put(threadId, new LinkedList<Event>());
+			lockLog.put(threadId, new LinkedList<Pair<Integer, Integer>>());
+
 			System.out.println(">> Start run T" + threadId);
 		} catch (Exception e) {
 			System.err.println(">> Monitor_ERROR: " + e.getMessage());
@@ -256,6 +506,7 @@ public class Monitor {
 	}
 
 	public synchronized static void joinRunThreadAfter(Thread t, String threadId) {
+
 	}
 
 	public synchronized static void crashed(Throwable crashedException) {
@@ -267,11 +518,75 @@ public class Monitor {
 		String traceFile_ = null;
 		File traceFile_monitordata = null;
 		ObjectOutputStream fw_monitordata;
+		Map<String, LinkedList<String>> conflictLog = new HashMap<String, LinkedList<String>>();
+		// Map<String, Integer> conflictLog = new HashMap<String, Integer>();
 
+		for (Entry<String, LinkedList<Event>> entry : writeLog.entrySet()) {
+			String key = entry.getKey();
+			for (Event event : entry.getValue()) {
+				String fieldVersionKey = event.getFieldId() + ":"
+						+ event.getVersion();
+				Integer counter = 1;
+				if (!conflictLog.containsKey(fieldVersionKey)) {
+					LinkedList<String> l = new LinkedList<String>();
+					l.add(key);
+					conflictLog.put(fieldVersionKey, l);
+				} else {
+					conflictLog.get(fieldVersionKey).add(key);
+					// System.out.println("Conflict found for field " +
+					// pair.getFirst() + ", conflicting version " +
+					// pair.getSecond());
+					// counter++;
+					// conflictLog.put(fieldVersionKey, counter);
+				}
+			}
+		}
+
+		for (Entry<String, LinkedList<String>> entry : conflictLog.entrySet()) {
+			LinkedList<String> value = entry.getValue();
+			if (value.size() > 1) {
+				StringBuilder sb = new StringBuilder();
+				sb.append("Field id " + entry.getKey()
+						+ ", threads conflicting: ");
+				for (String s : value) {
+					sb.append(s + " ");
+				}
+				System.out.println(sb.toString());
+			}
+
+		}
+
+		// ** save Runtime Information
+		/*
+		 * try { traceFile_monitordata = File.createTempFile(("Symber"),
+		 * ("_"+appname+"_trace.gz"), new File(Util.getReplayTmpDirectory()));
+		 * 
+		 * String traceFileName = traceFile_monitordata.getAbsolutePath(); int
+		 * index = traceFileName.indexOf("_trace"); traceFile_ =
+		 * traceFileName.substring(0, index);
+		 * 
+		 * assert (traceFile_monitordata != null);
+		 * 
+		 * fw_monitordata = new ObjectOutputStream(new GZIPOutputStream(new
+		 * FileOutputStream(traceFile_monitordata)));
+		 * 
+		 * } catch (IOException e) { e.printStackTrace(); }
+		 */
 		return traceFile_;
 	}
 
 	public static void generateTestDriver(String traceFile_) {
+		// GENERATE Test Driver
+		try {
+			CrashTestCaseGenerator.main(new String[] { traceFile_,
+					Util.getTmpReplayDirectory() });
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
