@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class InstanceOfContextImpl implements SpecialContext {
-	private static InstanceOfContextImpl ourInstance = new InstanceOfContextImpl();
+    private static InstanceOfContextImpl ourInstance = new InstanceOfContextImpl();
 
-	public static InstanceOfContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static InstanceOfContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private InstanceOfContextImpl() {
-	}
+    private InstanceOfContextImpl() {
+    }
 }

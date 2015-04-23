@@ -9,5 +9,6 @@
 	<classpathentry kind="lib" path="lib/sootclasses-2.5.0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/symber-common"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/benchmark"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/buggy-buffer"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

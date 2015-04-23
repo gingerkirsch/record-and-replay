@@ -40,55 +40,77 @@ import soot.jimple.toolkits.thread.mhp.UnsynchronizedMhpAnalysis;
 import soot.jimple.toolkits.thread.mhp.pegcallgraph.PegCallGraph;
 import soot.util.Chain;
 
-public class WholeProgramTransformer extends SceneTransformer {
-	protected void internalTransform(String pn, Map map) {
-		Visitor.tlo = new ThreadLocalObjectsAnalysis(
-				new SynchObliviousMhpAnalysis());// new
-													// UnsynchronizedMhpAnalysis());
+public class WholeProgramTransformer extends SceneTransformer
+{
+	protected void internalTransform(String pn, Map map)
+	{
+		Visitor.tlo = new ThreadLocalObjectsAnalysis(new SynchObliviousMhpAnalysis());//new UnsynchronizedMhpAnalysis());
 		Visitor.ftea = new XFieldThreadEscapeAnalysis();
 		Visitor.pecg = new PegCallGraph(Scene.v().getCallGraph());
-
-		Iterator<SootClass> classIt = Scene.v().getApplicationClasses()
-				.iterator();
-		while (classIt.hasNext()) {
-			SootClass sc = classIt.next();
+	
+		
+		Iterator<SootClass> classIt = Scene.v().getApplicationClasses().iterator();
+		while (classIt.hasNext()) 
+		{
+			SootClass sc =  classIt.next();
 			String scname = sc.getName();
-			// System.out.println("scname: "+scname);
+			//System.out.println("scname: "+scname);
 
-			if (!Util.shouldInstruThisClass(scname))
+			if(!Util.shouldInstruThisClass(scname)) 
 				continue;
-
+		         		        	  		       		        	  
 			Iterator<SootMethod> methodIt = sc.getMethods().iterator();
-
-			while (methodIt.hasNext()) {
-				SootMethod sm = methodIt.next();
-
-				/**
-				 * The following code is for optimization using synchronized
-				 * ownership if(Parameters.isRuntime) { List list =
-				 * Visitor.pecg.getPredsOf(sm); if (list.size()>0) { Iterator it
-				 * = list.iterator(); boolean flag = false; while (it.hasNext())
-				 * { SootMethod met = (SootMethod)it.next();
-				 * if(!met.isSynchronized()) { flag = false; break; } else flag
-				 * = true; } if(flag) {
-				 * Visitor.synchronizedIgnoreMethodSet.add(sm);
-				 * System.err.println(" *** synchronizedIgnoreMethod: "+sm);
-				 * continue; } } } else {
-				 * if(Visitor.synchronizedIgnoreMethodSet.contains(sm))
-				 * continue; }
-				 */
+     	  
+			while (methodIt.hasNext()) 
+			{
+				SootMethod sm = methodIt.next();	
+				
+/** The following code is for optimization using synchronized ownership
+				if(Parameters.isRuntime)
+				{
+					List list = Visitor.pecg.getPredsOf(sm);
+					if (list.size()>0)
+					{
+						Iterator it = list.iterator();
+						boolean flag = false;
+						while (it.hasNext())
+						{
+							SootMethod met = (SootMethod)it.next();
+							if(!met.isSynchronized())
+							{
+								flag = false;
+								break;
+							}
+							else
+								flag = true;
+						}
+						if(flag)
+						{
+							Visitor.synchronizedIgnoreMethodSet.add(sm);
+							System.err.println(" *** synchronizedIgnoreMethod: "+sm);
+							continue;
+						}
+					}
+				}
+				else
+				{
+					if(Visitor.synchronizedIgnoreMethodSet.contains(sm))
+						continue;
+				}
+*/
 				String smname = sm.getName();
-				if (!Util.shouldInstruThisMethod(smname))
+				if(!Util.shouldInstruThisMethod(smname))
+					continue;
+				
+				if(sm.isAbstract() || sm.isNative())
 					continue;
 
-				if (sm.isAbstract() || sm.isNative())
-					continue;
-
-				try {
+				try
+				{
 					Body body = sm.retrieveActiveBody();
-					TransformerForInstrumentation.v().transforming(body, pn,
-							map);
-				} catch (Exception e) {
+					TransformerForInstrumentation.v().transforming(body, pn, map);
+				}catch(Exception e)
+				{
 					continue;
 				}
 			}

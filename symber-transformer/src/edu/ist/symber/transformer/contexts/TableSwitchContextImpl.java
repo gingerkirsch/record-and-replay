@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class TableSwitchContextImpl implements LocalOrConstantContext {
-	private static TableSwitchContextImpl ourInstance = new TableSwitchContextImpl();
+    private static TableSwitchContextImpl ourInstance = new TableSwitchContextImpl();
 
-	public static TableSwitchContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static TableSwitchContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private TableSwitchContextImpl() {
-	}
+    private TableSwitchContextImpl() {
+    }
 }

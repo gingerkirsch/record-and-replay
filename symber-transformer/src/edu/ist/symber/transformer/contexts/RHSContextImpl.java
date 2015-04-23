@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class RHSContextImpl implements RHSContext {
-	private static RHSContextImpl ourInstance = new RHSContextImpl();
+    private static RHSContextImpl ourInstance = new RHSContextImpl();
 
-	public static RHSContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static RHSContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private RHSContextImpl() {
-	}
+    private RHSContextImpl() {
+    }
 }

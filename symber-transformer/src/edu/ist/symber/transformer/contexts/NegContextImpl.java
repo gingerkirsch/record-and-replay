@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class NegContextImpl implements LocalOrConstantContext {
-	private static NegContextImpl ourInstance = new NegContextImpl();
+    private static NegContextImpl ourInstance = new NegContextImpl();
 
-	public static NegContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static NegContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private NegContextImpl() {
-	}
+    private NegContextImpl() {
+    }
 }

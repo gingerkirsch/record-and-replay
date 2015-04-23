@@ -33,12 +33,12 @@
 package edu.ist.symber.transformer.contexts;
 
 public class ParameterRefContextImpl implements LocalContext {
-	private static ParameterRefContextImpl ourInstance = new ParameterRefContextImpl();
+    private static ParameterRefContextImpl ourInstance = new ParameterRefContextImpl();
 
-	public static ParameterRefContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static ParameterRefContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private ParameterRefContextImpl() {
-	}
+    private ParameterRefContextImpl() {
+    }
 }

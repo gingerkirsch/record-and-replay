@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class IfFirstContextImpl implements LocalOrConstantContext {
-	private static IfFirstContextImpl ourInstance = new IfFirstContextImpl();
+    private static IfFirstContextImpl ourInstance = new IfFirstContextImpl();
 
-	public static IfFirstContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static IfFirstContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private IfFirstContextImpl() {
-	}
+    private IfFirstContextImpl() {
+    }
 }

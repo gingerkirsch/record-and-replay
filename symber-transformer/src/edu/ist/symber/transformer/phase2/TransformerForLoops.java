@@ -17,36 +17,35 @@ import soot.Body;
 import soot.SootMethod;
 import soot.jimple.Stmt;
 import soot.jimple.toolkits.thread.mhp.PegGraph;
-
 /** FIND loops for inside a method body */
 public class TransformerForLoops {
-	// public static PegGraph pegGraph;
+	//public static PegGraph pegGraph;
 	public static Collection<MyLoop> loops;
 	public static HashSet<Stmt> loopstmts = new HashSet<Stmt>();
-
-	public static HashMap<SootMethod, Collection<MyLoop>> loopsMap = new HashMap<SootMethod, Collection<MyLoop>>();
-
-	public static void internalTransform(Body body, String phaseName,
-			Map options) {
-
-		loops = MyLoopFinder.internalTransform(body, phaseName, options);
+	
+	public static HashMap<SootMethod,Collection<MyLoop>> loopsMap = new HashMap<SootMethod,Collection<MyLoop>>();
+	public static void internalTransform(Body body, String phaseName, Map options) {
+		
+		loops = MyLoopFinder.internalTransform(body,phaseName,options);
 		getLoopStmts();
 	}
-
-	private static void getLoopStmts() {
+	private static void getLoopStmts()
+	{
 		loopstmts.clear();
-		if (loops == null)
+		if(loops==null)
 			return;
-
-		Iterator lpIt = loops.iterator();
-		while (lpIt.hasNext()) {
-			MyLoop loop = (MyLoop) lpIt.next();
-			List stmts = loop.getLoopStatements();
-			if (stmts.size() < Parameters.LOOP_STMT_COUNT) {
-				Iterator stmtIt = stmts.iterator();
-				while (stmtIt.hasNext())
-					loopstmts.add((Stmt) stmtIt.next());
-			}
-		}
+		
+		Iterator lpIt = loops.iterator(); 
+        while (lpIt.hasNext()) 
+        {
+           	 MyLoop loop = (MyLoop)lpIt.next();
+        	 List stmts = loop.getLoopStatements();
+        	 if(stmts.size()<Parameters.LOOP_STMT_COUNT)
+        	 {
+	             Iterator stmtIt = stmts.iterator();
+	             while(stmtIt.hasNext())
+	            	 loopstmts.add((Stmt)stmtIt.next());
+        	 }
+        }
 	}
 }

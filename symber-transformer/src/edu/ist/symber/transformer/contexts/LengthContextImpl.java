@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class LengthContextImpl implements LocalOrConstantContext {
-	private static LengthContextImpl ourInstance = new LengthContextImpl();
+    private static LengthContextImpl ourInstance = new LengthContextImpl();
 
-	public static LengthContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static LengthContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private LengthContextImpl() {
-	}
+    private LengthContextImpl() {
+    }
 }

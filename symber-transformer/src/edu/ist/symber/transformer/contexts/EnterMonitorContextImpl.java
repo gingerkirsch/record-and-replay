@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class EnterMonitorContextImpl implements LocalOrConstantContext {
-	private static EnterMonitorContextImpl ourInstance = new EnterMonitorContextImpl();
+    private static EnterMonitorContextImpl ourInstance = new EnterMonitorContextImpl();
 
-	public static EnterMonitorContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static EnterMonitorContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private EnterMonitorContextImpl() {
-	}
+    private EnterMonitorContextImpl() {
+    }
 }

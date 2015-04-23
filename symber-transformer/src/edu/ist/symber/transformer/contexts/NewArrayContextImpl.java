@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class NewArrayContextImpl implements SpecialContext {
-	private static NewArrayContextImpl ourInstance = new NewArrayContextImpl();
+    private static NewArrayContextImpl ourInstance = new NewArrayContextImpl();
 
-	public static NewArrayContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static NewArrayContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private NewArrayContextImpl() {
-	}
+    private NewArrayContextImpl() {
+    }
 }

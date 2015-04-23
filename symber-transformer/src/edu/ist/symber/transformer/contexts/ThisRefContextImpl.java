@@ -33,12 +33,12 @@
 package edu.ist.symber.transformer.contexts;
 
 public class ThisRefContextImpl implements LocalContext {
-	private static ThisRefContextImpl ourInstance = new ThisRefContextImpl();
+    private static ThisRefContextImpl ourInstance = new ThisRefContextImpl();
 
-	public static ThisRefContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static ThisRefContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private ThisRefContextImpl() {
-	}
+    private ThisRefContextImpl() {
+    }
 }

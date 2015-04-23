@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class ThrowContextImpl implements LocalOrConstantContext {
-	private static ThrowContextImpl ourInstance = new ThrowContextImpl();
+    private static ThrowContextImpl ourInstance = new ThrowContextImpl();
 
-	public static ThrowContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static ThrowContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private ThrowContextImpl() {
-	}
+    private ThrowContextImpl() {
+    }
 }

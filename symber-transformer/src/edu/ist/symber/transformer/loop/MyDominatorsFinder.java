@@ -1,6 +1,6 @@
 package edu.ist.symber.transformer.loop;
 
-import soot.toolkits.scalar.*;
+import soot.toolkits.scalar.*; 
 import soot.toolkits.graph.*;
 import soot.util.*;
 import java.util.*;
@@ -16,39 +16,40 @@ import java.util.*;
 //
 // -Richard L. Halpert, 2006-11-30
 
-public class MyDominatorsFinder {
+public class MyDominatorsFinder{
 	private final Map<Object, FlowSet> unitToDominators;
 	private final DirectedGraph peg;
-
-	MyDominatorsFinder(Chain chain, DirectedGraph pegGraph) {
-		unitToDominators = new HashMap<Object, FlowSet>();
+	
+	MyDominatorsFinder(Chain chain, DirectedGraph pegGraph){
+		unitToDominators = new HashMap<Object, FlowSet>(); 
 		peg = pegGraph;
 		find(chain);
-		// testUnitToDominators();
+		//testUnitToDominators();
 	}
-
+	
 	private void find(Chain chain) {
-
+		
 		boolean change = true;
-
+		
 		Iterator chainIt;
-
+		
 		FlowSet fullSet = new ArraySparseSet();
 		FlowSet temp = new ArraySparseSet();
-
+		
 		{
 			chainIt = chain.iterator();
-			while (chainIt.hasNext()) {
+			while (chainIt.hasNext()){
 				fullSet.add(chainIt.next());
-
+				
 			}
 		}
-
+		
 		List heads = peg.getHeads();
-		if (heads.size() != 1) {
+		if (heads.size() != 1){
 			System.err.println("The size of heads of peg is not equal to 1!");
 			System.exit(1);
-		} else {
+		}
+		else{
 			FlowSet dominators = new ArraySparseSet();
 			Object head = heads.get(0);
 			dominators.add(head);
@@ -56,10 +57,9 @@ public class MyDominatorsFinder {
 		}
 		{
 			chainIt = chain.iterator();
-			while (chainIt.hasNext()) {
+			while (chainIt.hasNext()){
 				Object n = chainIt.next();
-				if (heads.contains(n))
-					continue;
+				if (heads.contains(n)) continue;
 				FlowSet domin = new ArraySparseSet();
 				fullSet.copy(domin);
 				unitToDominators.put(n, domin);
@@ -67,23 +67,22 @@ public class MyDominatorsFinder {
 		}
 		System.out.println("===finish init unitToDominators===");
 		System.err.println("===finish init unitToDominators===");
-
+		
 		// testUnitToDominators();
-
+		
 		do {
 			change = false;
 			Iterator it = chain.iterator();
-			while (it.hasNext()) {
+			while(it.hasNext()){
 				Object n = it.next();
-				if (heads.contains(n))
-					continue;
-				else {
+				if (heads.contains(n)) continue;
+				else{
 					fullSet.copy(temp);
-
+					
 					Iterator predsIt = peg.getPredsOf(n).iterator();
-					while (predsIt.hasNext()) {
+					while (predsIt.hasNext()){
 						Object p = predsIt.next();
-						FlowSet dom = getDominatorsOf(p);
+						FlowSet dom = getDominatorsOf(p); 
 						temp.intersection(dom);
 					}
 					FlowSet d = new ArraySparseSet();
@@ -91,21 +90,22 @@ public class MyDominatorsFinder {
 					nSet.add(n);
 					nSet.union(temp, d);
 					FlowSet dominN = getDominatorsOf(n);
-					if (!d.equals(dominN)) {
+					if (!d.equals(dominN)){
 						change = true;
 						dominN = d;
 					}
 				}
 			}
-		} while (!change);
-
+		}while(!change);
+		
+		
 	}
-
-	public FlowSet getDominatorsOf(Object s) {
-		if (!unitToDominators.containsKey(s))
+	public FlowSet getDominatorsOf(Object s){
+		if(!unitToDominators.containsKey(s))
 			throw new RuntimeException("Invalid stmt" + s);
 		return unitToDominators.get(s);
-
+		
 	}
-
+	
 }
+

@@ -42,30 +42,8 @@ public class Visitor {
 	public static HashMap<Value, Integer> speIndexMap = new HashMap<Value, Integer>();
 	public static HashMap<Value, Integer> syncObjIndexMap = new HashMap<Value, Integer>();
 
-	public static HashMap<String, String> conditionToLockMap = new HashMap<String, String>(); // **
-																								// (java.concurrent.locks)
-																								// maps
-																								// a
-																								// Condition
-																								// to
-																								// its
-																								// respective
-																								// Lock;
-																								// this
-																								// is
-																								// necessary
-																								// to
-																								// correctly
-																								// update
-																								// the
-																								// sync
-																								// var
-																								// state
-																								// during
-																								// runtime
-	// public static boolean isWrappedByLock = false; //** tells whether we are
-	// analyzing instructions wrapped by a monitor/lock. If so, we don't need to
-	// instrument accesses to loads and stores
+	public static HashMap<String, String> conditionToLockMap = new HashMap<String, String>(); 	//** (java.concurrent.locks) maps a Condition to its respective Lock; this is necessary to correctly update the sync var state during runtime
+	//public static boolean isWrappedByLock = false;		//** tells whether we are analyzing instructions wrapped by a monitor/lock. If so, we don't need to instrument accesses to loads and stores
 
 	public static HashSet<String> visitedBranches = new HashSet<String>();
 
@@ -159,55 +137,64 @@ public class Visitor {
 		nextVisitor.visitStmtThrow(sm, units, throwStmt);
 	}
 
-	public void visitStmtReturnVoid(SootMethod sm, Chain units,
-			ReturnVoidStmt returnVoidStmt) {
+	public void visitStmtReturnVoid(SootMethod sm, Chain units, ReturnVoidStmt returnVoidStmt) {
 		if (Parameters.isMethodRunnable) {
 			Visitor.addCallRunMethodExitBefore(sm, units, returnVoidStmt);
 		}/*
-		 * if (Parameters.isMethodSynchronized && Parameters.removeSync) {
-		 * String sig; Value memory; Value base; sig =
-		 * sm.getDeclaringClass().getName() + ".OBJECT";//
-		 * +"."+invokeExpr.getMethod().getName();
-		 * 
-		 * if (sm.isStatic()) { memory = StringConstant.v(sig);
-		 * Visitor.addCallAccessSyncObj(sm, units, returnVoidStmt,
-		 * "exitMonitorBefore", memory); } else { memory =
-		 * StringConstant.v(sig); Stmt firstStmt = (Stmt) units.getFirst(); if
-		 * (firstStmt instanceof IdentityStmt) { base = ((IdentityStmt)
-		 * firstStmt).getLeftOp(); Visitor.addCallAccessSyncObjInstance(sm,
-		 * units, returnVoidStmt, "exitMonitorBefore", base, memory); } }
-		 * 
-		 * Visitor.instrusharedaccessnum++; Visitor.totalaccessnum++; }
-		 */
+		if (Parameters.isMethodSynchronized && Parameters.removeSync) {
+			String sig;
+			Value memory;
+			Value base;
+			sig = sm.getDeclaringClass().getName() + ".OBJECT";// +"."+invokeExpr.getMethod().getName();
 
-		// if (Parameters.isMethodSynchronized)
-		// isWrappedByLock = false;
+			if (sm.isStatic()) {
+				memory = StringConstant.v(sig);
+				Visitor.addCallAccessSyncObj(sm, units, returnVoidStmt,	"exitMonitorBefore", memory);
+			} else {
+				memory = StringConstant.v(sig);
+				Stmt firstStmt = (Stmt) units.getFirst();
+				if (firstStmt instanceof IdentityStmt) {
+					base = ((IdentityStmt) firstStmt).getLeftOp();
+					Visitor.addCallAccessSyncObjInstance(sm, units,	returnVoidStmt, "exitMonitorBefore", base, memory);
+				}
+			}
+
+			Visitor.instrusharedaccessnum++;
+			Visitor.totalaccessnum++;
+		}*/
+
+		//if (Parameters.isMethodSynchronized)
+		//isWrappedByLock = false;
 		nextVisitor.visitStmtReturnVoid(sm, units, returnVoidStmt);
 	}/*
 	 * ReturnStmt ::= 'return' LocalOrConstant@ReturnContext
 	 */
 
-	public void visitStmtReturn(SootMethod sm, Chain units,
-			ReturnStmt returnStmt) {
-		/*
-		 * if (Parameters.isMethodSynchronized && Parameters.removeSync) {
-		 * String sig; Value memory; Value base; sig =
-		 * sm.getDeclaringClass().getName() + ".OBJECT";//
-		 * +"."+invokeExpr.getMethod().getName();
-		 * 
-		 * if (sm.isStatic()) { memory = StringConstant.v(sig);
-		 * Visitor.addCallAccessSyncObj(sm, units,
-		 * returnStmt,"exitMonitorBefore", memory); } else { memory =
-		 * StringConstant.v(sig); Stmt firstStmt = (Stmt) units.getFirst(); if
-		 * (firstStmt instanceof IdentityStmt) { base = ((IdentityStmt)
-		 * firstStmt).getLeftOp(); Visitor.addCallAccessSyncObjInstance(sm,
-		 * units, returnStmt,"exitMonitorBefore", base, memory); } }
-		 * 
-		 * Visitor.instrusharedaccessnum++; Visitor.totalaccessnum++; }
-		 */
+	public void visitStmtReturn(SootMethod sm, Chain units, ReturnStmt returnStmt) {
+		/*	if (Parameters.isMethodSynchronized && Parameters.removeSync) {
+			String sig;
+			Value memory;
+			Value base;
+			sig = sm.getDeclaringClass().getName() + ".OBJECT";// +"."+invokeExpr.getMethod().getName();
 
-		// if (Parameters.isMethodSynchronized)
-		// isWrappedByLock = false;
+			if (sm.isStatic()) {
+				memory = StringConstant.v(sig);
+				Visitor.addCallAccessSyncObj(sm, units, returnStmt,"exitMonitorBefore", memory);
+			} else {
+				memory = StringConstant.v(sig);
+				Stmt firstStmt = (Stmt) units.getFirst();
+				if (firstStmt instanceof IdentityStmt) {
+					base = ((IdentityStmt) firstStmt).getLeftOp();
+					Visitor.addCallAccessSyncObjInstance(sm, units, returnStmt,"exitMonitorBefore", base, memory);
+				}
+			}
+
+			Visitor.instrusharedaccessnum++;
+			Visitor.totalaccessnum++;
+		}*/
+
+		//if (Parameters.isMethodSynchronized)
+		//isWrappedByLock = false;
 		nextVisitor.visitStmtReturn(sm, units, returnStmt);
 	}/*
 	 * MonitorStmt ::= EnterMonitorStmt | ExitMonitorStmt
@@ -262,109 +249,91 @@ public class Visitor {
 		nextVisitor.visitStmtInvoke(sm, units, invokeStmt);
 	}
 
-	public boolean checkKindOfIf(Chain units, IfStmt ifStmt) {
+	public boolean checkKindOfIf(Chain units, IfStmt ifStmt){
 
 		Stmt limit = ifStmt.getTarget();
 		Stmt next = (Stmt) units.getSuccOf(ifStmt);
-		int dif = 0;
-		while ((!next.equals(limit)) || (dif > 0)) {
-			if (next instanceof GotoStmt) {
-				dif = dif - 1;
-			} else if (next instanceof IfStmt) {
-				dif = dif + 1;
+		int dif=0;
+		while ((!next.equals(limit))||(dif>0)){
+			if (next instanceof GotoStmt){
+				dif = dif-1;
+			}else if (next instanceof IfStmt){
+				dif = dif+1;
 			}
 			next = (Stmt) units.getSuccOf(next);
 		}
-		if (dif < 0) {
+		if (dif<0){
 			return true;
-		} else {
+		}else{
 			return false;
 		}
 	}
 
-	public void ifElseInstrumentation(SootMethod sm, Chain units, IfStmt ifStmt) {
-		// System.out.println("How many? Ans. "+ifStmt.getTarget().getBoxesPointingToThis().size());
+	public void ifElseInstrumentation(SootMethod sm, Chain units, IfStmt ifStmt){
+		//System.out.println("How many? Ans. "+ifStmt.getTarget().getBoxesPointingToThis().size());
 		if (Parameters.isRuntime) {
 
-			// Instrumenting when else
+			//Instrumenting when else
 			LinkedList args = new LinkedList();
 			args.addLast(IntConstant.v(1));
 			args.addLast(getMethodThreadId(sm));
 
-			SootMethodRef mr = Scene
-					.v()
-					.getMethod(
-							"<" + observerClass
-									+ ": void logDecision(int,long)>")
-					.makeRef();
-			units.insertBefore(
-					Jimple.v().newInvokeStmt(
-							Jimple.v().newStaticInvokeExpr(mr, args)),
-					ifStmt.getTarget());
+			SootMethodRef mr = Scene.v().getMethod("<" + observerClass+ ": void logDecision(int,long)>").makeRef();
+			units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr,args)),ifStmt.getTarget());
 
-			// Instrumenting when If
+			//Instrumenting when If
 			args.removeFirst();
 			args.addFirst(IntConstant.v(0));
 
-			units.insertBefore(
-					Jimple.v().newInvokeStmt(
-							Jimple.v().newStaticInvokeExpr(mr, args)),
-					units.getSuccOf(ifStmt));
+			units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr,args)),units.getSuccOf(ifStmt));
 		}
 	}
 
-	public void ifNoElseInstrumentation(SootMethod sm, Chain units,
-			IfStmt ifStmt) {
-		// System.out.println("How many? Ans. "+ifStmt.getTarget().getBoxesPointingToThis().size());
+	public void ifNoElseInstrumentation(SootMethod sm, Chain units, IfStmt ifStmt){
+		//System.out.println("How many? Ans. "+ifStmt.getTarget().getBoxesPointingToThis().size());
 		if (Parameters.isRuntime) {
 
-			// Instrumenting when else
+			//Instrumenting when else
 			LinkedList args = new LinkedList();
 			args.addLast(IntConstant.v(1));
 			args.addLast(getMethodThreadId(sm));
-			args.addLast(IntConstant.v(Integer.valueOf(ifStmt.getTag(
-					"LineNumberTag").toString())));
+			args.addLast(IntConstant.v(Integer.valueOf(ifStmt.getTag("LineNumberTag").toString())));
 
-			SootMethodRef mr = Scene
-					.v()
-					.getMethod(
-							"<" + observerClass
-									+ ": void logDecisionNoElse(int,long,int)>")
-					.makeRef();
-			units.insertBefore(
-					Jimple.v().newInvokeStmt(
-							Jimple.v().newStaticInvokeExpr(mr, args)),
-					ifStmt.getTarget());
 
-			// Instrumenting when If
+			SootMethodRef mr = Scene.v().getMethod("<" + observerClass+ ": void logDecisionNoElse(int,long,int)>").makeRef();
+			units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr,args)),ifStmt.getTarget());
+
+			//Instrumenting when If
 			args.removeFirst();
 			args.addFirst(IntConstant.v(0));
 
-			units.insertBefore(
-					Jimple.v().newInvokeStmt(
-							Jimple.v().newStaticInvokeExpr(mr, args)),
-					units.getSuccOf(ifStmt));
+			units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr,args)),units.getSuccOf(ifStmt));
 		}
 	}
 
 	public void visitStmtIf(SootMethod sm, Chain units, IfStmt ifStmt) {
 		nextVisitor.visitStmtIf(sm, units, ifStmt);
-		// CHANGE MANUEL {
-		/*
-		 * String line = sm.getDeclaringClass().toString() + ":" +
-		 * ifStmt.getTag("LineNumberTag").toString(); if
-		 * (!visitedBranches.contains(line)) { visitedBranches.add(line);
-		 * System.out.print(line + " goes to: ");
-		 * System.out.println(ifStmt.getTarget().getTag("LineNumberTag")
-		 * .toString());
-		 * 
-		 * //System.out.println("Number of targets: "+listboxes.size());
-		 * 
-		 * boolean elsePart = checkKindOfIf(units, ifStmt); //boolean elsePart =
-		 * true; if (elsePart){ System.out.println("I have else clause!");
-		 * ifElseInstrumentation(sm, units, ifStmt); }else{
-		 * ifNoElseInstrumentation(sm, units, ifStmt); } } //CHANGE MANUEL }
-		 */
+		//CHANGE MANUEL {
+		/*String line = sm.getDeclaringClass().toString() + ":"
+		+ ifStmt.getTag("LineNumberTag").toString();
+		if (!visitedBranches.contains(line)) {
+			visitedBranches.add(line);
+			System.out.print(line + " goes to: ");
+			System.out.println(ifStmt.getTarget().getTag("LineNumberTag")
+					.toString());
+
+			//System.out.println("Number of targets: "+listboxes.size());
+
+			boolean elsePart = checkKindOfIf(units, ifStmt);
+			//boolean elsePart = true;
+			if (elsePart){
+				System.out.println("I have else clause!");
+				ifElseInstrumentation(sm, units, ifStmt);
+			}else{
+				ifNoElseInstrumentation(sm, units, ifStmt);
+			}
+		}
+		//CHANGE MANUEL }*/
 
 	}/*
 	 * GotoStmt ::= Label@GotoContext
@@ -552,8 +521,7 @@ public class Visitor {
 	 * StaticFieldRef{RHSContext,LHSContext}
 	 */
 
-	public void visitStaticFieldRef(SootMethod sm, Chain units, Stmt s,
-			StaticFieldRef staticFieldRef, RefContext context) {
+	public void visitStaticFieldRef(SootMethod sm, Chain units, Stmt s,	StaticFieldRef staticFieldRef, RefContext context) {
 		nextVisitor.visitStaticFieldRef(sm, units, s, staticFieldRef, context);
 	}/*
 	 * ArrayRef{RHSContext,LHSContext}
@@ -643,9 +611,13 @@ public class Visitor {
 		return isSubClass(c.getSuperclass(), typeName);
 	}
 
+
+
 	public void setStaticReceiver(SootMethod sm, Chain units) {
 
 	}
+
+
 
 	public static int getSyncObjectIndex(Value v) {
 
@@ -672,7 +644,8 @@ public class Visitor {
 
 	}
 
-	private static Stmt getMainThreadIdentityNameStmt(Chain units) {
+	private static Stmt getMainThreadIdentityNameStmt(Chain units)
+	{
 		Stmt s = (Stmt) units.getFirst();
 		while (true) {
 			if (s.toString().contains("tname_main"))
@@ -711,6 +684,8 @@ public class Visitor {
 		}
 		return s;
 	}
+
+
 
 	private static Stmt getThreadIdentityNameStmt(Chain units, String methodname) {
 		Stmt s = (Stmt) units.getFirst();
@@ -766,127 +741,84 @@ public class Visitor {
 		return Visitor.methodToThreadIdMap.get(sm);
 	}
 
+
+
 	/**
-	 * Checks for the initialization of java.concurrency.Condition objects in
-	 * the class method <clinit>/<init>
-	 * 
+	 * Checks for the initialization of java.concurrency.Condition objects in the class method <clinit>/<init> 
 	 * @param thisMethod
 	 * @param units
 	 */
-	public static void checkForLockConditions(SootMethod thisMethod, Chain units) {
+	public static void checkForLockConditions(SootMethod thisMethod, Chain units) 
+	{
 		Value lockObj, condObj;
-		Iterator stmtIt = units.snapshotIterator();
+		Iterator stmtIt = units.snapshotIterator();  
 
-		while (stmtIt.hasNext()) {
+		while (stmtIt.hasNext()) 
+		{
 			Stmt s = (Stmt) stmtIt.next();
-			if (s.toString().contains("newCondition()")) {
-				lockObj = ((AssignStmt) units.getPredOf(s)).getRightOp();
-				condObj = ((AssignStmt) stmtIt.next()).getLeftOp();
+			if (s.toString().contains("newCondition()"))
+			{
+				lockObj = ((AssignStmt)units.getPredOf(s)).getRightOp(); 
+				condObj = ((AssignStmt)stmtIt.next()).getLeftOp();
 				conditionToLockMap.put(condObj.toString(), lockObj.toString());
 			}
 		}
 	}
 
+
 	/**
-	 * Checks for calls of synchronized methods inside the class method
-	 * <clinit>/<init> (this is used to instrument beforeEnterMonitorStatic in
-	 * the replay version).
-	 * 
+	 * Checks for calls of synchronized methods inside the class method <clinit>/<init> (this is used to instrument beforeEnterMonitorStatic in the replay version).
 	 * @param thisMethod
 	 * @param units
 	 */
-	public static void checkForSyncMethods(SootMethod thisMethod, Chain units) {
-		Iterator stmtIt = units.snapshotIterator();
+	public static void checkForSyncMethods(SootMethod thisMethod, Chain units) 
+	{
+		Iterator stmtIt = units.snapshotIterator();  
 
-		while (stmtIt.hasNext()) {
+		while (stmtIt.hasNext()) 
+		{
 			Stmt stmt = (Stmt) stmtIt.next();
-			if (stmt instanceof AssignStmt) {
+			if(stmt instanceof AssignStmt)
+			{
 				Value s = ((AssignStmt) stmt).getRightOp();
-				if (s instanceof StaticInvokeExpr) {
+				if(s instanceof StaticInvokeExpr)
+				{
 					SootMethod syncmethod = ((StaticInvokeExpr) s).getMethod();
-					if (syncmethod.isSynchronized() && Parameters.isReplay
-							&& !syncmethod.getSignature().startsWith("<java.")) // **
-																				// used
-																				// to
-																				// instrument
-																				// calls
-																				// to
-																				// synchronized
-																				// methods
-																				// in
-																				// the
-																				// caller
-																				// method
-					{
-						String sigclass = syncmethod.getDeclaringClass()
-								.getName() + ".OBJECT";// +"."+invokeExpr.getMethod().getName();
+					if(syncmethod.isSynchronized() && Parameters.isReplay && !syncmethod.getSignature().startsWith("<java."))	//** used to instrument calls to synchronized methods in the caller method
+					{		
+						String sigclass = syncmethod.getDeclaringClass().getName()+".OBJECT";//+"."+invokeExpr.getMethod().getName();
 						Value memory = StringConstant.v(sigclass);
 
 						LinkedList args = new LinkedList();
 
-						args.addLast(IntConstant.v(Visitor
-								.getSyncObjectIndex(memory)));
+						args.addLast(IntConstant.v(Visitor.getSyncObjectIndex(memory)));
 						args.addLast(getMethodThreadName(thisMethod));
 						args.addLast(StringConstant.v("SYNCMETHOD"));
-						args.addFirst(Visitor.addLocalCalleeClassHandler(
-								thisMethod.retrieveActiveBody(), syncmethod));
+						args.addFirst(Visitor.addLocalCalleeClassHandler(thisMethod.retrieveActiveBody(),syncmethod));
 
-						SootMethodRef mr = Scene
-								.v()
-								.getMethod(
-										"<"
-												+ observerClass
-												+ ": void beforeMonitorEnterStatic(java.lang.Object,int,java.lang.String,java.lang.String)>")
-								.makeRef();
-						units.insertBefore(
-								Jimple.v().newInvokeStmt(
-										Jimple.v()
-												.newStaticInvokeExpr(mr, args)),
-								stmt);
+						SootMethodRef mr = Scene.v().getMethod("<" + observerClass + ": void beforeMonitorEnterStatic(java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+						units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr, args)), stmt);
 
 					}
-				} else if (s instanceof InstanceInvokeExpr) {
-					SootMethod syncmethod = ((InstanceInvokeExpr) s)
-							.getMethod();
-					if (syncmethod.isSynchronized() && Parameters.isReplay
-							&& !syncmethod.getSignature().startsWith("<java.")) // **
-																				// used
-																				// to
-																				// instrument
-																				// calls
-																				// to
-																				// synchronized
-																				// methods
-																				// in
-																				// the
-																				// caller
-																				// method
+				}
+				else if(s instanceof InstanceInvokeExpr)
+				{
+					SootMethod syncmethod = ((InstanceInvokeExpr) s).getMethod();
+					if(syncmethod.isSynchronized() && Parameters.isReplay && !syncmethod.getSignature().startsWith("<java."))	//** used to instrument calls to synchronized methods in the caller method
 					{
-						String sigclass = syncmethod.getDeclaringClass()
-								.getName() + ".OBJECT";// +"."+invokeExpr.getMethod().getName();
+						String sigclass = syncmethod.getDeclaringClass().getName()+".OBJECT";//+"."+invokeExpr.getMethod().getName();
 						Value memory = StringConstant.v(sigclass);
 
 						Value base = ((InstanceInvokeExpr) s).getBase();
 
 						LinkedList args = new LinkedList();
 						args.addLast(base);
-						args.addLast(IntConstant.v(Visitor
-								.getSyncObjectIndex(memory)));
+						args.addLast(IntConstant.v(Visitor.getSyncObjectIndex(memory)));
 						args.addLast(getMethodThreadName(thisMethod));
 						args.addLast(StringConstant.v("SYNCMETHOD"));
 
-						SootMethodRef mr = Scene
-								.v()
-								.getMethod(
-										"<"
-												+ observerClass
-												+ ": void beforeMonitorEnter(java.lang.Object,int,java.lang.String,java.lang.String)>")
-								.makeRef();
-						units.insertBefore(
-								Jimple.v().newInvokeStmt(
-										Jimple.v()
-												.newStaticInvokeExpr(mr, args)),
-								stmt);
+						SootMethodRef mr = Scene.v().getMethod("<" + observerClass + ": void beforeMonitorEnter(java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+						units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr, args)), stmt);
 					}
 				}
 			}
@@ -895,23 +827,23 @@ public class Visitor {
 
 	/**
 	 * Checks for thread.stard() invocations in the class method <init>
-	 * 
 	 * @param thisMethod
 	 * @param units
 	 */
-	public static void checkForThreadInit(SootMethod thisMethod, Chain units) {
-		Iterator stmtIt = units.snapshotIterator();
+	public static void checkForThreadInit(SootMethod thisMethod, Chain units) 
+	{
+		Iterator stmtIt = units.snapshotIterator();  
 
-		while (stmtIt.hasNext()) {
+		while (stmtIt.hasNext()) 
+		{
 			Stmt s = (Stmt) stmtIt.next();
-			if (s instanceof InvokeStmt) {
+			if(s instanceof InvokeStmt)
+			{
 				InvokeExpr expr = s.getInvokeExpr();
 				String sig = expr.getMethod().getSubSignature();
-				if (sig.contains("void start()")
-						&& isThreadSubType(expr.getMethod().getDeclaringClass())) {
-					addCallstartRunThreadBefore(thisMethod, units, s,
-							"startRunThreadBefore",
-							((InstanceInvokeExpr) expr).getBase());
+				if(sig.contains("void start()") && isThreadSubType(expr.getMethod().getDeclaringClass()))
+				{
+					addCallstartRunThreadBefore(thisMethod, units, s, "startRunThreadBefore", ((InstanceInvokeExpr)expr).getBase());
 				}
 			}
 		}
@@ -973,12 +905,12 @@ public class Visitor {
 		units.insertBefore(newAssignStmt1, newAssignStmt2);
 	}
 
+
 	public static void addLocalThreadName(Body body) {
 
 		Chain units = body.getUnits();
 
-		Local tname = Jimple.v().newLocal(
-				"tname_" + body.getMethod().getName(),
+		Local tname = Jimple.v().newLocal("tname_" + body.getMethod().getName(),
 				RefType.v("java.lang.String"));
 		Local thread_ = Jimple.v().newLocal(
 				"thread_" + body.getMethod().getName(),
@@ -999,15 +931,14 @@ public class Visitor {
 		AssignStmt newAssignStmt1 = Jimple.v().newAssignStmt(thread_,
 				staticInvoke);
 
-		String methodSig2 = "<" + "java.lang.Thread"
-				+ ": java.lang.String getName()>";
+		String methodSig2 = "<" + "java.lang.Thread" + ": java.lang.String getName()>";
 
 		SootMethodRef mr2 = Scene.v().getMethod(methodSig2).makeRef();
 
 		Value virtualInvoke = Jimple.v().newVirtualInvokeExpr(thread_, mr2);
 
-		AssignStmt newAssignStmt2 = Jimple.v().newAssignStmt(tname,
-				virtualInvoke);
+		AssignStmt newAssignStmt2 = Jimple.v()
+				.newAssignStmt(tname, virtualInvoke);
 
 		Stmt insertStmt = getLastIdentityStmt(units);
 		if (insertStmt != null)
@@ -1018,58 +949,46 @@ public class Visitor {
 		units.insertBefore(newAssignStmt1, newAssignStmt2);
 	}
 
+
 	/**
-	 * Inserts a Local containing a runtime handler for the class (used when
-	 * dealing with synchronized static methods to get the class monitor object)
-	 * 
+	 * Inserts a Local containing a runtime handler for the class (used when dealing with synchronized static methods to get the class monitor object)  
 	 * @param body
 	 */
-	public static Local addLocalClassHandler(Body body) {
+	public static Local addLocalClassHandler(Body body)
+	{
 		Chain units = body.getUnits();
 
-		Local classMonitor = Jimple.v().newLocal(
-				"classMonitor_" + body.getMethod().getName(),
-				RefType.v("java.lang.Object"));
+		Local classMonitor = Jimple.v().newLocal("classMonitor_" + body.getMethod().getName(), RefType.v("java.lang.Object"));
 		body.getLocals().add(classMonitor);
 
 		SootMethod appMethod = body.getMethod();
 		SootClass appClass = appMethod.getDeclaringClass();
 
-		AssignStmt newAssignStmt1 = Jimple.v().newAssignStmt(
-				classMonitor,
-				soot.jimple.ClassConstant.v(appClass.getName().replaceAll(
-						"\\.", "/")));
+		AssignStmt newAssignStmt1 = Jimple.v().newAssignStmt(classMonitor,soot.jimple.ClassConstant.v(appClass.getName().replaceAll("\\.", "/")));
 		Stmt insertStmt = getLastIdentityStmt(units);
 		if (insertStmt != null)
 			units.insertAfter(newAssignStmt1, insertStmt);
 		else
-			units.insertBefore(newAssignStmt1, getFirstNonIdentityStmt(units));
+			units.insertBefore(newAssignStmt1, getFirstNonIdentityStmt(units)); 
 
 		return classMonitor;
 	}
 
+
 	/**
-	 * Inserts a Local containing a runtime handler for the callee class (used
-	 * to get the callee class monitor object when dealing with the invoke of
-	 * synchronized methods of other classes)
-	 * 
+	 * Inserts a Local containing a runtime handler for the callee class (used to get the callee class monitor object when dealing with the invoke of synchronized methods of other classes)  
 	 * @param body
 	 */
-	public static Local addLocalCalleeClassHandler(Body callerbody,
-			SootMethod calleemethod) {
+	public static Local addLocalCalleeClassHandler(Body callerbody, SootMethod calleemethod)
+	{
 		Chain units = callerbody.getUnits();
 
-		Local classMonitor = Jimple.v().newLocal(
-				"classMonitor_" + calleemethod.getName(),
-				RefType.v("java.lang.Object"));
+		Local classMonitor = Jimple.v().newLocal("classMonitor_" + calleemethod.getName(), RefType.v("java.lang.Object"));
 		callerbody.getLocals().add(classMonitor);
 
 		SootClass calleeAppClass = calleemethod.getDeclaringClass();
 
-		AssignStmt newAssignStmt1 = Jimple.v().newAssignStmt(
-				classMonitor,
-				soot.jimple.ClassConstant.v(calleeAppClass.getName()
-						.replaceAll("\\.", "/")));
+		AssignStmt newAssignStmt1 = Jimple.v().newAssignStmt(classMonitor,soot.jimple.ClassConstant.v(calleeAppClass.getName().replaceAll("\\.", "/")));
 
 		Stmt insertStmt = getLastIdentityStmt(units);
 		if (insertStmt != null)
@@ -1079,52 +998,40 @@ public class Visitor {
 
 		return classMonitor;
 	}
+
+
 
 	public static void addCallMainMethodEnterInsert(SootMethod sm, Chain units) {
 
 		LinkedList args = new LinkedList();
 		args.addLast(getMethodThreadName(sm));
-		args.addLast(StringConstant.v(sm.getDeclaringClass().getName() + "."
-				+ sm.getName()));
-		args.addLast(((IdentityStmt) units.getFirst()).getLeftOp());
-		String methodSig = "<"
-				+ observerClass
-				+ ": void mainThreadStartRun(java.lang.String,java.lang.String,java.lang.String[])>";
+		args.addLast(StringConstant.v(sm.getDeclaringClass().getName()+"."+sm.getName()));
+		args.addLast(((IdentityStmt)units.getFirst()).getLeftOp());
+		String methodSig ="<" + observerClass +": void mainThreadStartRun(java.lang.String,java.lang.String,java.lang.String[])>";
 
 		SootMethodRef mr = Scene.v().getMethod(methodSig).makeRef();
-		Value staticInvoke = Jimple.v().newStaticInvokeExpr(mr, args);
-		units.insertAfter(Jimple.v().newInvokeStmt(staticInvoke),
-				getMainThreadIdentityNameStmt(units));
+		Value staticInvoke = Jimple.v().newStaticInvokeExpr(mr, args);    
+		units.insertAfter(Jimple.v().newInvokeStmt(staticInvoke), getMainThreadIdentityNameStmt(units));
 	}
+
 
 	public static void addCallRunMethodEnterInsert(SootMethod sm, Chain units) {
 
 		LinkedList args = new LinkedList();
 		args.addLast(getMethodThreadName(sm));
-		SootMethodRef mr = Scene
-				.v()
-				.getMethod(
-						"<" + observerClass + ": void " + "threadStartRun"
-								+ "(java.lang.String)>").makeRef();
+		SootMethodRef mr = Scene.v().getMethod("<" + observerClass + ": void " + "threadStartRun" + "(java.lang.String)>").makeRef();
 		Value staticInvoke = Jimple.v().newStaticInvokeExpr(mr, args);
-		units.insertAfter(Jimple.v().newInvokeStmt(staticInvoke),
-				getRunThreadIdentityNameStmt(units));
+		units.insertAfter(Jimple.v().newInvokeStmt(staticInvoke),getRunThreadIdentityNameStmt(units));
 
 	}
 
-	public static void addCallRunMethodExitBefore(SootMethod sm, Chain units,
-			Stmt returnVoidStmt) {
+	public static void addCallRunMethodExitBefore(SootMethod sm, Chain units, Stmt returnVoidStmt) {
 
 		LinkedList args = new LinkedList();
 		args.addLast(getMethodThreadName(sm));
-		SootMethodRef mr = Scene
-				.v()
-				.getMethod(
-						"<" + observerClass + ": void " + "threadExitRun"
-								+ "(java.lang.String)>").makeRef();
+		SootMethodRef mr = Scene.v().getMethod("<" + observerClass + ": void " + "threadExitRun" + "(java.lang.String)>").makeRef();
 		Value staticInvoke = Jimple.v().newStaticInvokeExpr(mr, args);
-		units.insertBefore(Jimple.v().newInvokeStmt(staticInvoke),
-				returnVoidStmt);
+		units.insertBefore(Jimple.v().newInvokeStmt(staticInvoke), returnVoidStmt);
 		// Iterator stmtIt = units.snapshotIterator();
 		// while (stmtIt.hasNext())
 		// {
@@ -1192,324 +1099,168 @@ public class Visitor {
 		body.validate();
 	}
 
+
 	/**
 	 * Wraps each access to a shared program element instance (SPE)
-	 * 
 	 * @param sm
 	 * @param units
 	 * @param s
 	 * @param methodNameBefore
 	 * @param spe
 	 */
-	public static void addCallAccessSPEInstance(SootMethod sm, Chain units,
-			Stmt s, String methodNameBefore, Value spe) {
+	public static void addCallAccessSPEInstance(SootMethod sm, Chain units, Stmt s, String methodNameBefore, Value spe) {
 
-		// ** code to assign static ids to object instances
-		/*
-		 * LinkedList args = new LinkedList();
-		 * args.addLast(IntConstant.v(getSPEIndex(spe)));
-		 * args.addLast(getMethodThreadName(sm));
-		 * 
-		 * SootMethodRef mrBefore = Scene.v().getMethod("<" + observerClass +
-		 * ": void " + methodNameBefore + "(int,java.lang.String)>").makeRef();
-		 * units
-		 * .insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr
-		 * (mrBefore, args)), s);
-		 * 
-		 * String methodNameAfter = methodNameBefore.replace("before", "after");
-		 * SootMethodRef mrAfter = Scene.v().getMethod("<" + observerClass +
-		 * ": void " + methodNameAfter + "(int,java.lang.String)>").makeRef();
-		 * units
-		 * .insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr
-		 * (mrAfter, args)), s); //
-		 */
-
-		// ** code to assign object ids to object instances
-		// System.out.println("SPE INSTANCE ----> "+s+" -- o obj Ž "+((InstanceFieldRef)s.getFieldRef()).getBase());
-
-		if (!Parameters.isLEAPmode) // ** if isLEAPmode, then we add a static
-									// identifier for each SPE, otherwise we add
-									// a reference to the object instance
+		if(!Parameters.isLEAPmode)	//** if isLEAPmode, then we add a static identifier for each SPE, otherwise we add a reference to the object instance	
 		{
-			Value base = ((InstanceFieldRef) s.getFieldRef()).getBase();
+			Value base = ((InstanceFieldRef)s.getFieldRef()).getBase();
+			int fieldId = getSPEIndex(spe); //value used to differentiate between different fields of the same object
 			LinkedList args = new LinkedList();
 			args.addLast(base);
+			args.addLast(IntConstant.v(fieldId));
 			args.addLast(getMethodThreadName(sm));
 
 			String pattern = "(before|after)(Load|Store)";
 			Pattern r = Pattern.compile(pattern);
 			Matcher m = r.matcher(methodNameBefore);
-			if (m.find()) {
-				System.out.println("STMT: " + s);
-				String type = s.getDefBoxes().get(0).getValue().getType()
-						.toString();
-				System.out.println("type (read): " + type);
+			if (m.find()){
+				//System.out.println("STMT: "+s);
+				String type = s.getDefBoxes().get(0).getValue().getType().toString();
+				//System.out.println("type (read): "+type);
 				Value value = ((AssignStmt) s).getLeftOp();
 
-				// for write operations, we have to obtain the right operand
-				if (methodNameBefore.contains("Store")) {
+				//for write operations, we have to obtain the right operand
+				if(methodNameBefore.contains("Store")){
 					value = ((AssignStmt) s).getRightOp();
 					type = value.getType().toString();
-					System.out.println("type (write): " + type);
+					//System.out.println("type (write): "+type);
 				}
 
-				args.addLast(value);
-				System.out.println("value added to args: " + value);
+				args.addLast(value); 
+				//System.out.println("value added to args: "+value);			
 
-				SootMethodRef mrBefore = Scene
-						.v()
-						.getMethod(
-								"<"
-										+ observerClass
-										+ ": void "
-										+ methodNameBefore
-										+ "(java.lang.Object,java.lang.String,java.lang.Object)>")
-						.makeRef();
-				String methodNameAfter = methodNameBefore.replace("before",
-						"after");
-				SootMethodRef mrAfter = Scene
-						.v()
-						.getMethod(
-								"<"
-										+ observerClass
-										+ ": void "
-										+ methodNameAfter
-										+ "(java.lang.Object,java.lang.String,java.lang.Object)>")
-						.makeRef();
+				SootMethodRef mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(java.lang.Object,int,java.lang.String,java.lang.Object)>").makeRef();
+				String methodNameAfter = methodNameBefore.replace("before", "after");
+				SootMethodRef mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(java.lang.Object,int,java.lang.String,java.lang.Object)>").makeRef();
 
-				if (type.equals("int")) {
-					mrAfter = Scene
-							.v()
-							.getMethod(
-									"<"
-											+ observerClass
-											+ ": void "
-											+ methodNameAfter
-											+ "(java.lang.Object,java.lang.String,int)>")
-							.makeRef();
-					mrBefore = Scene
-							.v()
-							.getMethod(
-									"<"
-											+ observerClass
-											+ ": void "
-											+ methodNameBefore
-											+ "(java.lang.Object,java.lang.String,int)>")
-							.makeRef();
-				} else if (type.equals("boolean")) {
-					mrAfter = Scene
-							.v()
-							.getMethod(
-									"<"
-											+ observerClass
-											+ ": void "
-											+ methodNameAfter
-											+ "(java.lang.Object,java.lang.String,boolean)>")
-							.makeRef();
-					mrBefore = Scene
-							.v()
-							.getMethod(
-									"<"
-											+ observerClass
-											+ ": void "
-											+ methodNameBefore
-											+ "(java.lang.Object,java.lang.String,boolean)>")
-							.makeRef();
+
+				if(type.equals("int")){
+					mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(java.lang.Object,int,java.lang.String,int)>").makeRef();
+					mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(java.lang.Object,int,java.lang.String,int)>").makeRef();
 				}
-				System.out.println("BEFORE: " + mrBefore);
-				System.out.println("AFTER: " + mrAfter + "\n");
-				if (methodNameBefore.contains("Store")) {
-					// for stores we only instrument with the value before the
-					// write operation
-					units.insertBefore(
-							Jimple.v().newInvokeStmt(
-									Jimple.v().newStaticInvokeExpr(mrBefore,
-											args)), s);
+				else if(type.equals("boolean")){
+					mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(java.lang.Object,int,java.lang.String,boolean)>").makeRef();
+					mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(java.lang.Object,int,java.lang.String,boolean)>").makeRef();
+				}
+				//System.out.println("BEFORE: "+mrBefore);
+				//System.out.println("AFTER: "+mrAfter+"\n");
+				if(methodNameBefore.contains("Store")){
+					//for stores we only instrument with the value before the write operation
+					units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrBefore, args)), s); 
 
-					args.removeLast();
-					mrAfter = Scene
-							.v()
-							.getMethod(
-									"<"
-											+ observerClass
-											+ ": void "
-											+ methodNameAfter
-											+ "(java.lang.Object,java.lang.String)>")
-							.makeRef();
-					units.insertAfter(
-							Jimple.v().newInvokeStmt(
-									Jimple.v().newStaticInvokeExpr(mrAfter,
-											args)), s);
-				} else {
-					// for loads we only instrument with the value after the
-					// read operation
-					units.insertAfter(
-							Jimple.v().newInvokeStmt(
-									Jimple.v().newStaticInvokeExpr(mrAfter,
-											args)), s);
+					//we don't instrument the after methods for the OREO runtime version
+					if(!(Parameters.isOREOmode && Parameters.isRuntime)){
+						args.removeLast();
+						mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(java.lang.Object,int,java.lang.String)>").makeRef();
+						units.insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrAfter,args)), s); 
+					}
+				}
+				else{ 
+					//for loads we only instrument with the value after the read operation 
+					units.insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrAfter,args)), s); 
 
-					args.removeLast();
-					mrBefore = Scene
-							.v()
-							.getMethod(
-									"<"
-											+ observerClass
-											+ ": void "
-											+ methodNameBefore
-											+ "(java.lang.Object,java.lang.String)>")
-							.makeRef();
-					units.insertBefore(
-							Jimple.v().newInvokeStmt(
-									Jimple.v().newStaticInvokeExpr(mrBefore,
-											args)), s);
+					//instrument beforeLoad only for replay version
+					if(Parameters.isReplay){
+						args.removeLast();
+						mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(java.lang.Object,int,java.lang.String)>").makeRef();
+						units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrBefore, args)), s); 
+					}
 				}
 			}
-		} else
+		}
+		else 
 			addCallAccessSPEStatic(sm, units, s, methodNameBefore, spe);
 
 	}
 
 	/**
 	 * Wraps each access to a static shared program element (SPE)
-	 * 
 	 * @param sm
 	 * @param units
 	 * @param s
 	 * @param methodNameBefore
 	 * @param spe
 	 */
-	public static void addCallAccessSPEStatic(SootMethod sm, Chain units,
-			Stmt s, String methodNameBefore, Value v) {
+	public static void addCallAccessSPEStatic(SootMethod sm, Chain units, Stmt s, String methodNameBefore, Value v) {
 
 		LinkedList args = new LinkedList();
 		args.addLast(IntConstant.v(getSPEIndex(v)));
-		args.addLast(getMethodThreadName(sm));
+		args.addLast(getMethodThreadName(sm)); 
 		String pattern = "(before|after)(Load|Store)";
 		Pattern r = Pattern.compile(pattern);
 		Matcher m = r.matcher(methodNameBefore);
-		if (m.find()) {
-			String type = s.getDefBoxes().get(0).getValue().getType()
-					.toString();
-			System.out.println("STMT: " + s);
-			System.out.println("type (read): " + type);
+		if (m.find()){
+			String type = s.getDefBoxes().get(0).getValue().getType().toString();
+			System.out.println("STMT: "+s);
+			System.out.println("type (read): "+type);
 			Value value = ((AssignStmt) s).getLeftOp();
 
-			// for write operations, we have to obtain the right operand
-			if (methodNameBefore.contains("Store")) {
+			//for write operations, we have to obtain the right operand
+			if(methodNameBefore.contains("Store")){
 				value = ((AssignStmt) s).getRightOp();
 				type = value.getType().toString();
-				System.out.println("type (write): " + type);
+				System.out.println("type (write): "+type);
 			}
 
-			// Value value = s.getDefBoxes().get(0).getValue();
-			args.addLast((Object) value);
-			System.out.println("value added to args: " + value);
-			// System.out.println("-------END: Analyzing value from Stmt-------");
-			// SootMethodRef mrBefore =
+			//Value value = s.getDefBoxes().get(0).getValue();
+			args.addLast((Object)value);
+			System.out.println("value added to args: "+value);
+			//System.out.println("-------END: Analyzing value from Stmt-------");
+			//SootMethodRef mrBefore = 
 
-			SootMethodRef mrBefore = Scene
-					.v()
-					.getMethod(
-							"<"
-									+ observerClass
-									+ ": void "
-									+ methodNameBefore
-									+ "(int,java.lang.String,java.lang.Object)>")
-					.makeRef();
-			String methodNameAfter = methodNameBefore
-					.replace("before", "after");
-			SootMethodRef mrAfter = Scene
-					.v()
-					.getMethod(
-							"<"
-									+ observerClass
-									+ ": void "
-									+ methodNameAfter
-									+ "(int,java.lang.String,java.lang.Object)>")
-					.makeRef();
+			SootMethodRef mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(int,java.lang.String,java.lang.Object)>").makeRef();
+			String methodNameAfter = methodNameBefore.replace("before", "after");
+			SootMethodRef mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(int,java.lang.String,java.lang.Object)>").makeRef();
 
-			if (type.equals("int")) {
-				mrBefore = Scene
-						.v()
-						.getMethod(
-								"<" + observerClass + ": void "
-										+ methodNameBefore
-										+ "(int,java.lang.String,int)>")
-						.makeRef();
-				mrAfter = Scene
-						.v()
-						.getMethod(
-								"<" + observerClass + ": void "
-										+ methodNameAfter
-										+ "(int,java.lang.String,int)>")
-						.makeRef();
+			if(type.equals("int")){
+				mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(int,java.lang.String,int)>").makeRef();
+				mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(int,java.lang.String,int)>").makeRef();
 
-			} else if (type.equals("boolean")) {
-				mrBefore = Scene
-						.v()
-						.getMethod(
-								"<" + observerClass + ": void "
-										+ methodNameBefore
-										+ "(int,java.lang.String,boolean)>")
-						.makeRef();
-				mrAfter = Scene
-						.v()
-						.getMethod(
-								"<" + observerClass + ": void "
-										+ methodNameAfter
-										+ "(int,java.lang.String,boolean)>")
-						.makeRef();
+			}
+			else if(type.equals("boolean")){
+				mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(int,java.lang.String,boolean)>").makeRef();
+				mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(int,java.lang.String,boolean)>").makeRef();
 			}
 
-			System.out.println("BEFORE: " + mrBefore);
-			System.out.println("AFTER: " + mrAfter + "\n");
-			if (methodNameBefore.contains("Store")) {
-				// for stores we only instrument with the value before the write
-				// operation
-				units.insertBefore(
-						Jimple.v().newInvokeStmt(
-								Jimple.v().newStaticInvokeExpr(mrBefore, args)),
-						s);
+			System.out.println("BEFORE: "+mrBefore);
+			System.out.println("AFTER: "+mrAfter+"\n");
+			if(methodNameBefore.contains("Store")){
+				//for stores we only instrument with the value before the write operation
+				units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrBefore, args)), s); 
 
-				args.removeLast();
-				mrAfter = Scene
-						.v()
-						.getMethod(
-								"<" + observerClass + ": void "
-										+ methodNameAfter
-										+ "(int,java.lang.String)>").makeRef();
-				units.insertAfter(
-						Jimple.v().newInvokeStmt(
-								Jimple.v().newStaticInvokeExpr(mrAfter, args)),
-						s);
-			} else {
-				// for loads we only instrument with the value after the read
-				// operation
-				units.insertAfter(
-						Jimple.v().newInvokeStmt(
-								Jimple.v().newStaticInvokeExpr(mrAfter, args)),
-						s);
-
-				args.removeLast();
-				mrBefore = Scene
-						.v()
-						.getMethod(
-								"<" + observerClass + ": void "
-										+ methodNameBefore
-										+ "(int,java.lang.String)>").makeRef();
-				units.insertBefore(
-						Jimple.v().newInvokeStmt(
-								Jimple.v().newStaticInvokeExpr(mrBefore, args)),
-						s);
+				//we don't instrument the after methods for the OREO runtime version
+				if(!(Parameters.isOREOmode && Parameters.isRuntime)){
+					args.removeLast();
+					mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(int,java.lang.String)>").makeRef();
+					units.insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrAfter,args)), s); 
+				}
 			}
-		}
+			else{ 
+				//for loads we only instrument with the value after the read operation 
+				units.insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrAfter,args)), s); 
+
+				//instrument beforeLoad only for replay version
+				if(Parameters.isReplay){
+					args.removeLast();
+					mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(int,java.lang.String)>").makeRef();
+					units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrBefore, args)), s); 
+				}
+			}
+		} 
 	}
 
 	/**
-	 * Instruments accesses to synchronization variables (locks). Method
-	 * injected is afterMonitorEnter(Object o, int monitorId, String threadId)
-	 * and beforeMonitorEnter(Object o, int monitorId, String threadId)
-	 * 
+	 * Instruments accesses to synchronization variables (locks).
+	 * Method injected is afterMonitorEnter(Object o, int monitorId, String threadId) and beforeMonitorEnter(Object o, int monitorId, String threadId)
 	 * @param sm
 	 * @param units
 	 * @param s
@@ -1517,50 +1268,27 @@ public class Visitor {
 	 * @param obj
 	 * @param spe
 	 */
-	public static void addCallAccessSyncLock(SootMethod sm, Chain units,
-			Stmt s, String methodName, Value obj, Value spe, String monitorName) {
+	public static void addCallAccessSyncLock(SootMethod sm, Chain units, Stmt s, String methodName, Value obj, Value spe, String monitorName) {
 		LinkedList args = new LinkedList();
 		args.addLast(obj);
 		args.addLast(IntConstant.v(getSyncObjectIndex(spe)));
 		args.addLast(getMethodThreadName(sm));
 		args.addLast(StringConstant.v(monitorName));
 
-		SootMethodRef mrAfter = Scene
-				.v()
-				.getMethod(
-						"<"
-								+ observerClass
-								+ ": void "
-								+ methodName
-								+ "(java.lang.Object,int,java.lang.String,java.lang.String)>")
-				.makeRef();
-		units.insertAfter(
-				Jimple.v().newInvokeStmt(
-						Jimple.v().newStaticInvokeExpr(mrAfter, args)), s);
+		SootMethodRef mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodName	+ "(java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+		units.insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrAfter, args)), s);
 
-		if (Parameters.isReplay) {
-			String methodNameBefore = methodName.replace("after", "before");
-			SootMethodRef mrBefore = Scene
-					.v()
-					.getMethod(
-							"<"
-									+ observerClass
-									+ ": void "
-									+ methodNameBefore
-									+ "(java.lang.Object,int,java.lang.String,java.lang.String)>")
-					.makeRef();
-			units.insertBefore(
-					Jimple.v().newInvokeStmt(
-							Jimple.v().newStaticInvokeExpr(mrBefore, args)), s);
+		if (Parameters.isReplay) 
+		{
+			String methodNameBefore = methodName.replace("after","before");
+			SootMethodRef mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+			units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrBefore, args)), s);
 		}
 	}
 
 	/**
 	 * Instruments accesses to synchronization variables (condition signal).
-	 * Method injected is afterConditionEnter(Object lock, Object condition, int
-	 * monitorId, String threadId) and beforeConditionEnter(Object lock, Object
-	 * condition, int monitorId, String threadId)
-	 * 
+	 * Method injected is afterConditionEnter(Object lock, Object condition, int monitorId, String threadId) and beforeConditionEnter(Object lock, Object condition, int monitorId, String threadId)
 	 * @param sm
 	 * @param units
 	 * @param s
@@ -1568,9 +1296,7 @@ public class Visitor {
 	 * @param obj
 	 * @param spe
 	 */
-	public static void addCallAccessSyncSignal(SootMethod sm, Chain units,
-			Stmt s, String methodName, Value lock, Value cond, Value spe,
-			String monitorName) {
+	public static void addCallAccessSyncSignal(SootMethod sm, Chain units, Stmt s, String methodName, Value lock, Value cond, Value spe, String monitorName) {
 
 		LinkedList args = new LinkedList();
 		args.addLast(lock);
@@ -1579,43 +1305,22 @@ public class Visitor {
 		args.addLast(getMethodThreadName(sm));
 		args.addLast(StringConstant.v(monitorName));
 
-		// if(Parameters.isRuntime){
-		SootMethodRef mr = Scene
-				.v()
-				.getMethod(
-						"<"
-								+ observerClass
-								+ ": void "
-								+ methodName
-								+ "(java.lang.Object,java.lang.Object,int,java.lang.String,java.lang.String)>")
-				.makeRef();
-		units.insertBefore(
-				Jimple.v().newInvokeStmt(
-						Jimple.v().newStaticInvokeExpr(mr, args)), s);
+		//if(Parameters.isRuntime){
+		SootMethodRef mr = Scene.v().getMethod("<" + observerClass + ": void " + methodName	+ "(java.lang.Object,java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+		units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr, args)), s);
 
-		if (Parameters.isReplay) {
-			String methodNameAfter = methodName.replace("before", "after");
-			SootMethodRef mrAfter = Scene
-					.v()
-					.getMethod(
-							"<"
-									+ observerClass
-									+ ": void "
-									+ methodNameAfter
-									+ "(java.lang.Object,java.lang.Object,int,java.lang.String,java.lang.String)>")
-					.makeRef();
-			units.insertAfter(
-					Jimple.v().newInvokeStmt(
-							Jimple.v().newStaticInvokeExpr(mrAfter, args)), s);
+		if (Parameters.isReplay) 
+		{
+			String methodNameAfter = methodName.replace("before","after");
+			SootMethodRef mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(java.lang.Object,java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+			units.insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrAfter, args)), s);
 		}
 	}
 
+
 	/**
-	 * Instruments accesses to synchronization variables (notify and condition
-	 * signal). Method injected is afterMonitorEnter(Object o, int monitorId,
-	 * String threadId) and beforeMonitorEnter(Object o, int monitorId, String
-	 * threadId)
-	 * 
+	 * Instruments accesses to synchronization variables (notify and condition signal).
+	 * Method injected is afterMonitorEnter(Object o, int monitorId, String threadId) and beforeMonitorEnter(Object o, int monitorId, String threadId)
 	 * @param sm
 	 * @param units
 	 * @param s
@@ -1623,8 +1328,7 @@ public class Visitor {
 	 * @param obj
 	 * @param spe
 	 */
-	public static void addCallAccessSyncNotify(SootMethod sm, Chain units,
-			Stmt s, String methodName, Value obj, Value spe, String monitorName) {
+	public static void addCallAccessSyncNotify(SootMethod sm, Chain units, Stmt s, String methodName, Value obj, Value spe, String monitorName) {
 
 		LinkedList args = new LinkedList();
 		args.addLast(obj);
@@ -1632,43 +1336,22 @@ public class Visitor {
 		args.addLast(getMethodThreadName(sm));
 		args.addLast(StringConstant.v(monitorName));
 
-		// if(Parameters.isRuntime){
-		SootMethodRef mr = Scene
-				.v()
-				.getMethod(
-						"<"
-								+ observerClass
-								+ ": void "
-								+ methodName
-								+ "(java.lang.Object,int,java.lang.String,java.lang.String)>")
-				.makeRef();
-		units.insertBefore(
-				Jimple.v().newInvokeStmt(
-						Jimple.v().newStaticInvokeExpr(mr, args)), s);
+		//if(Parameters.isRuntime){
+		SootMethodRef mr = Scene.v().getMethod("<" + observerClass + ": void " + methodName + "(java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+		units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr, args)), s);
 
-		if (Parameters.isReplay) {
-			String methodNameAfter = methodName.replace("before", "after");
-			SootMethodRef mrAfter = Scene
-					.v()
-					.getMethod(
-							"<"
-									+ observerClass
-									+ ": void "
-									+ methodNameAfter
-									+ "(java.lang.Object,int,java.lang.String,java.lang.String)>")
-					.makeRef();
-			units.insertAfter(
-					Jimple.v().newInvokeStmt(
-							Jimple.v().newStaticInvokeExpr(mrAfter, args)), s);
+		if (Parameters.isReplay) 
+		{
+			String methodNameAfter = methodName.replace("before","after");
+			SootMethodRef mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+			units.insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrAfter, args)), s);
 		}
 	}
+
 
 	/**
 	 * Instruments accesses to synchronization variables (condition awaits).
-	 * Method injected is afterConditionEnter(Object lock, Object condition, int
-	 * monitorId, String threadId) and beforeConditionEnter(Object lock, Object
-	 * condition, int monitorId, String threadId)
-	 * 
+	 * Method injected is afterConditionEnter(Object lock, Object condition, int monitorId, String threadId) and beforeConditionEnter(Object lock, Object condition, int monitorId, String threadId)
 	 * @param sm
 	 * @param units
 	 * @param s
@@ -1676,9 +1359,7 @@ public class Visitor {
 	 * @param obj
 	 * @param spe
 	 */
-	public static void addCallAccessSyncAwait(SootMethod sm, Chain units,
-			Stmt s, String methodName, Value lock, Value cond, Value spe,
-			String monitorName) {
+	public static void addCallAccessSyncAwait(SootMethod sm, Chain units, Stmt s, String methodName, Value lock, Value cond, Value spe, String monitorName) {
 
 		LinkedList args = new LinkedList();
 		args.addLast(lock);
@@ -1687,44 +1368,24 @@ public class Visitor {
 		args.addLast(getMethodThreadName(sm));
 		args.addLast(StringConstant.v(monitorName));
 
-		// if(Parameters.isRuntime){
-		SootMethodRef mr = Scene
-				.v()
-				.getMethod(
-						"<"
-								+ observerClass
-								+ ": void "
-								+ methodName
-								+ "(java.lang.Object,java.lang.Object,int,java.lang.String,java.lang.String)>")
-				.makeRef();
-		units.insertAfter(
-				Jimple.v().newInvokeStmt(
-						Jimple.v().newStaticInvokeExpr(mr, args)), s);
-		// }
+		//if(Parameters.isRuntime){
+		SootMethodRef mr = Scene.v().getMethod("<" + observerClass + ": void " + methodName	+ "(java.lang.Object,java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+		units.insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr, args)), s);
+		//}
 
-		if (Parameters.isReplay) {
-			String methodNameBefore = methodName.replace("after", "before");
-			SootMethodRef mrBefore = Scene
-					.v()
-					.getMethod(
-							"<"
-									+ observerClass
-									+ ": void "
-									+ methodNameBefore
-									+ "(java.lang.Object,java.lang.Object,int,java.lang.String,java.lang.String)>")
-					.makeRef();
-			units.insertBefore(
-					Jimple.v().newInvokeStmt(
-							Jimple.v().newStaticInvokeExpr(mrBefore, args)), s);
+		if(Parameters.isReplay)
+		{
+			String methodNameBefore = methodName.replace("after","before");
+			SootMethodRef mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(java.lang.Object,java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+			units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrBefore, args)), s);
 		}
 	}
 
+
+
 	/**
-	 * Instruments accesses to synchronization variables (waits and condition
-	 * awaits). Method injected is afterMonitorEnter(Object o, int monitorId,
-	 * String threadId) and beforeMonitorEnter(Object o, int monitorId, String
-	 * threadId)
-	 * 
+	 * Instruments accesses to synchronization variables (waits and condition awaits).
+	 * Method injected is afterMonitorEnter(Object o, int monitorId, String threadId) and beforeMonitorEnter(Object o, int monitorId, String threadId)
 	 * @param sm
 	 * @param units
 	 * @param s
@@ -1732,8 +1393,7 @@ public class Visitor {
 	 * @param obj
 	 * @param spe
 	 */
-	public static void addCallAccessSyncWait(SootMethod sm, Chain units,
-			Stmt s, String methodName, Value obj, Value spe, String monitorName) {
+	public static void addCallAccessSyncWait(SootMethod sm, Chain units, Stmt s, String methodName, Value obj, Value spe, String monitorName) {
 
 		LinkedList args = new LinkedList();
 		args.addLast(obj);
@@ -1741,50 +1401,29 @@ public class Visitor {
 		args.addLast(getMethodThreadName(sm));
 		args.addLast(StringConstant.v(monitorName));
 
-		// if(Parameters.isRuntime){
-		SootMethodRef mrAfter = Scene
-				.v()
-				.getMethod(
-						"<"
-								+ observerClass
-								+ ": void "
-								+ methodName
-								+ "(java.lang.Object,int,java.lang.String,java.lang.String)>")
-				.makeRef();
-		units.insertAfter(
-				Jimple.v().newInvokeStmt(
-						Jimple.v().newStaticInvokeExpr(mrAfter, args)), s);
-		// }
-		if (Parameters.isReplay) {
-			String methodNameBefore = methodName.replace("after", "before");
-			SootMethodRef mrBefore = Scene
-					.v()
-					.getMethod(
-							"<"
-									+ observerClass
-									+ ": void "
-									+ methodNameBefore
-									+ "(java.lang.Object,int,java.lang.String,java.lang.String)>")
-					.makeRef();
-			units.insertBefore(
-					Jimple.v().newInvokeStmt(
-							Jimple.v().newStaticInvokeExpr(mrBefore, args)), s);
+		//if(Parameters.isRuntime){
+		SootMethodRef mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodName + "(java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+		units.insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrAfter, args)), s);
+		//}
+		if(Parameters.isReplay)
+		{
+			String methodNameBefore = methodName.replace("after","before");
+			SootMethodRef mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+			units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrBefore, args)), s);
 		}
 	}
 
+
 	/**
-	 * Instruments accesses to synchronization variables (java monitors). Method
-	 * injected is afterMonitorEnter(Object o, int monitorId, String threadId)
-	 * and beforeMonitorEnter(Object o, int monitorId, String threadId)
-	 * 
+	 * Instruments accesses to synchronization variables (java monitors).
+	 * Method injected is afterMonitorEnter(Object o, int monitorId, String threadId) and beforeMonitorEnter(Object o, int monitorId, String threadId)
 	 * @param sm
 	 * @param units
 	 * @param s
 	 * @param methodName
 	 * @param spe
 	 */
-	public static void addCallAccessSyncObj(SootMethod sm, Chain units, Stmt s,
-			String methodName, Value obj, Value spe, String monitorName) {
+	public static void addCallAccessSyncObj(SootMethod sm, Chain units, Stmt s, String methodName, Value obj, Value spe, String monitorName) {
 
 		LinkedList args = new LinkedList();
 		args.addLast(obj);
@@ -1792,51 +1431,28 @@ public class Visitor {
 		args.addLast(getMethodThreadName(sm));
 		args.addLast(StringConstant.v(monitorName));
 
-		SootMethodRef mr = Scene
-				.v()
-				.getMethod(
-						"<"
-								+ observerClass
-								+ ": void "
-								+ methodName
-								+ "(java.lang.Object,int,java.lang.String,java.lang.String)>")
-				.makeRef();
-		units.insertAfter(
-				Jimple.v().newInvokeStmt(
-						Jimple.v().newStaticInvokeExpr(mr, args)), s);
+		SootMethodRef mr = Scene.v().getMethod("<" + observerClass + ": void " + methodName	+ "(java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+		units.insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr, args)), s);
 
-		if (Parameters.isReplay) {
-			String methodNameBefore = methodName.replace("after", "before");
-			SootMethodRef mrBefore = Scene
-					.v()
-					.getMethod(
-							"<"
-									+ observerClass
-									+ ": void "
-									+ methodNameBefore
-									+ "(java.lang.Object,int,java.lang.String,java.lang.String)>")
-					.makeRef();
-			units.insertBefore(
-					Jimple.v().newInvokeStmt(
-							Jimple.v().newStaticInvokeExpr(mrBefore, args)), s);
+		if (Parameters.isReplay) 
+		{
+			String methodNameBefore = methodName.replace("after","before");
+			SootMethodRef mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+			units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrBefore, args)), s);
 		}
 
 	}
 
 	/**
-	 * Instruments accesses to synchronization variables (java monitors). Method
-	 * injected is afterMonitorEnter(Object o, int monitorId, String threadId)
-	 * and beforeMonitorEnter(Object o, int monitorId, String threadId)
-	 * 
+	 * Instruments accesses to synchronization variables (java monitors).
+	 * Method injected is afterMonitorEnter(Object o, int monitorId, String threadId) and beforeMonitorEnter(Object o, int monitorId, String threadId)
 	 * @param sm
 	 * @param units
 	 * @param methodName
 	 * @param obj
 	 * @param spe
 	 */
-	public static void addCallJavaMonitorEntryInstance(SootMethod sm,
-			Chain units, String methodName, Value obj, Value spe,
-			String monitorName) {
+	public static void addCallJavaMonitorEntryInstance(SootMethod sm, Chain units, String methodName, Value obj, Value spe, String monitorName) {
 
 		LinkedList args = new LinkedList();
 		args.addLast(obj);
@@ -1845,81 +1461,46 @@ public class Visitor {
 		args.addLast(StringConstant.v(monitorName));
 
 		Stmt s = getThreadIdentityNameStmt(units, sm.getName());
-		SootMethodRef mr = Scene
-				.v()
-				.getMethod(
-						"<"
-								+ observerClass
-								+ ": void "
-								+ methodName
-								+ "(java.lang.Object,int,java.lang.String,java.lang.String)>")
-				.makeRef();
-		units.insertAfter(
-				Jimple.v().newInvokeStmt(
-						Jimple.v().newStaticInvokeExpr(mr, args)), s);
+		SootMethodRef mr = Scene.v().getMethod("<" + observerClass + ": void " + methodName	+ "(java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+		units.insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr, args)), s);
 
-		/*
-		 * if (Parameters.isReplay) //** the before statement is already
-		 * inserted in SymberVisitor2 line 151 { String methodNameBefore =
-		 * methodName.replace("after","before"); SootMethodRef mrBefore =
-		 * Scene.v().getMethod("<" + observerClass + ": void " +
-		 * methodNameBefore +
-		 * "(java.lang.Object,int,java.lang.String,java.lang.String)>"
-		 * ).makeRef(); units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().
-		 * newStaticInvokeExpr(mrBefore, args)), units.getSuccOf(s)); }
-		 */
+		/*if (Parameters.isReplay) 	//** the before statement is already inserted in SymberVisitor2 line 151
+		{
+			String methodNameBefore = methodName.replace("after","before");
+			SootMethodRef mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+			units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrBefore, args)), units.getSuccOf(s));
+		}*/
 
 	}
 
 	/**
-	 * Instruments accesses to synchronization variables (java monitors). Method
-	 * injected is afterMonitorEnter(Object o, int monitorId, String threadId)
-	 * and beforeMonitorEnter(Object o, int monitorId, String threadId)
-	 * 
+	 * Instruments accesses to synchronization variables (java monitors).
+	 * Method injected is afterMonitorEnter(Object o, int monitorId, String threadId) and beforeMonitorEnter(Object o, int monitorId, String threadId)
 	 * @param sm
 	 * @param units
 	 * @param methodName
 	 * @param spe
 	 */
-	public static void addCallJavaMonitorEntryStatic(SootMethod sm,
-			Chain units, String methodName, Value spe, String monitorName) {
+	public static void addCallJavaMonitorEntryStatic(SootMethod sm, Chain units,String methodName, Value spe, String monitorName) {
 
 		LinkedList args = new LinkedList();
 
 		args.addLast(IntConstant.v(getSyncObjectIndex(spe)));
 		args.addLast(getMethodThreadName(sm));
 		args.addLast(StringConstant.v(monitorName));
-		args.addFirst(addLocalClassHandler(sm.retrieveActiveBody())); // ** gets
-																		// the
-																		// class
-																		// object
+		args.addFirst(addLocalClassHandler(sm.retrieveActiveBody())); //** gets the class object
 
 		Stmt s = getThreadIdentityNameStmt(units, sm.getName());
 
-		SootMethodRef mr = Scene
-				.v()
-				.getMethod(
-						"<"
-								+ observerClass
-								+ ": void "
-								+ methodName
-								+ "(java.lang.Object,int,java.lang.String,java.lang.String)>")
-				.makeRef();
-		units.insertAfter(
-				Jimple.v().newInvokeStmt(
-						Jimple.v().newStaticInvokeExpr(mr, args)), s);
+		SootMethodRef mr = Scene.v().getMethod("<" + observerClass + ": void " + methodName	+ "(java.lang.Object,int,java.lang.String,java.lang.String)>").makeRef();
+		units.insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr, args)), s);
 
-		/*
-		 * if (Parameters.isReplay) //** the before statement is already
-		 * inserted in SymberVisitor2 line 166 { String methodNameBefore =
-		 * methodName.replace("after","before"); SootMethodRef mrBefore =
-		 * Scene.v().getMethod("<" + observerClass + ": void " +
-		 * methodNameBefore +
-		 * "(int,java.lang.String,java.lang.String)>").makeRef();
-		 * units.insertBefore
-		 * (Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrBefore,
-		 * args)), units.getSuccOf(s)); }
-		 */
+		/*if (Parameters.isReplay) 	//** the before statement is already inserted in SymberVisitor2 line 166
+		{
+			String methodNameBefore = methodName.replace("after","before");
+			SootMethodRef mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(int,java.lang.String,java.lang.String)>").makeRef();
+			units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrBefore, args)), units.getSuccOf(s));
+		}*/
 	}
 
 	public static void addCallMonitorEntry(Body body) {
@@ -1933,55 +1514,44 @@ public class Visitor {
 		sig = appClass.getName() + ".OBJECT";// +"."+invokeExpr.getMethod().getName();
 		memory = StringConstant.v(sig);
 
-		if (appMethod.isStatic()) {
-			Visitor.addCallJavaMonitorEntryStatic(appMethod, units,
-					"afterMonitorEnterStatic", memory, "SYNCMETHOD");
-		} else {
+
+		if (appMethod.isStatic()) 
+		{
+			Visitor.addCallJavaMonitorEntryStatic(appMethod, units, "afterMonitorEnterStatic", memory, "SYNCMETHOD");
+		} 
+		else 
+		{
 			Stmt firstStmt = (Stmt) units.getFirst();
 			if (firstStmt instanceof IdentityStmt) {
 				base = ((IdentityStmt) firstStmt).getLeftOp();
-				Visitor.addCallJavaMonitorEntryInstance(appMethod, units,
-						"afterMonitorEnter", base, memory, "SYNCMETHOD");
+				Visitor.addCallJavaMonitorEntryInstance(appMethod, units, "afterMonitorEnter", base, memory, "SYNCMETHOD");
 			}
 		}
 		Visitor.instrusharedaccessnum++;
 		Visitor.totalaccessnum++;
 	}
 
+
 	/**
-	 * Instruments starRunThreadBefore(Thread t, String threadName)
+	 * Instruments starRunThreadBefore(Thread t, String threadName) 
 	 */
-	public static void addCallstartRunThreadBefore(SootMethod sm, Chain units,
-			Stmt s, String methodName, Value v) {
+	public static void addCallstartRunThreadBefore(SootMethod sm, Chain units, Stmt s, String methodName, Value v) {
 		LinkedList args = new LinkedList();
 		args.addLast(v);
 		args.addLast(getMethodThreadName(sm));
-		SootMethodRef mr = Scene
-				.v()
-				.getMethod(
-						"<" + observerClass + ": void " + methodName
-								+ "(java.lang.Thread,java.lang.String)>")
-				.makeRef();
-		units.insertBefore(
-				Jimple.v().newInvokeStmt(
-						Jimple.v().newStaticInvokeExpr(mr, args)), s);
+		SootMethodRef mr = Scene.v().getMethod("<" + observerClass + ": void " + methodName	+ "(java.lang.Thread,java.lang.String)>").makeRef();
+		units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr, args)), s);
 	}
 
-	public static void addCallJoinRunThreadAfter(SootMethod sm, Chain units,
-			Stmt s, String methodName, Value v) {
+
+	public static void addCallJoinRunThreadAfter(SootMethod sm, Chain units, Stmt s, String methodName, Value v) {
 		LinkedList args = new LinkedList();
 		args.addLast(v);
 		args.addLast(getMethodThreadName(sm));
-		SootMethodRef mr = Scene
-				.v()
-				.getMethod(
-						"<" + observerClass + ": void " + methodName
-								+ "(java.lang.Thread,java.lang.String)>")
-				.makeRef();
-		units.insertAfter(
-				Jimple.v().newInvokeStmt(
-						Jimple.v().newStaticInvokeExpr(mr, args)), s);
+		SootMethodRef mr = Scene.v().getMethod("<" + observerClass + ": void " + methodName	+ "(java.lang.Thread,java.lang.String)>").makeRef();
+		units.insertAfter(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mr, args)), s);
 	}
+
 
 	public static void writingLog(String line) {
 		try {

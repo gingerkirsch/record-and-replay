@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class InvokeOnlyContextImpl implements InvokeContext {
-	private static InvokeOnlyContextImpl ourInstance = new InvokeOnlyContextImpl();
+    private static InvokeOnlyContextImpl ourInstance = new InvokeOnlyContextImpl();
 
-	public static InvokeOnlyContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static InvokeOnlyContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private InvokeOnlyContextImpl() {
-	}
+    private InvokeOnlyContextImpl() {
+    }
 }

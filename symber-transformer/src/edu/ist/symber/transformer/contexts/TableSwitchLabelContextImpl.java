@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class TableSwitchLabelContextImpl implements SwitchContext {
-	private static TableSwitchLabelContextImpl ourInstance = new TableSwitchLabelContextImpl();
+    private static TableSwitchLabelContextImpl ourInstance = new TableSwitchLabelContextImpl();
 
-	public static TableSwitchLabelContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static TableSwitchLabelContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private TableSwitchLabelContextImpl() {
-	}
+    private TableSwitchLabelContextImpl() {
+    }
 }

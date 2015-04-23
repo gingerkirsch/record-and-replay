@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class NewExprContextImpl implements NewExprContext {
-	private static NewExprContextImpl ourInstance = new NewExprContextImpl();
+    private static NewExprContextImpl ourInstance = new NewExprContextImpl();
 
-	public static NewExprContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static NewExprContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private NewExprContextImpl() {
-	}
+    private NewExprContextImpl() {
+    }
 }

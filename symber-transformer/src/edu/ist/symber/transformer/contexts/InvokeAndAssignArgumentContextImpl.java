@@ -31,16 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
-public class InvokeAndAssignArgumentContextImpl implements
-		LocalOrConstantContext {
-	private static InvokeAndAssignArgumentContextImpl ourInstance = new InvokeAndAssignArgumentContextImpl();
+public class InvokeAndAssignArgumentContextImpl implements LocalOrConstantContext {
+    private static InvokeAndAssignArgumentContextImpl ourInstance = new InvokeAndAssignArgumentContextImpl();
 
-	public static InvokeAndAssignArgumentContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static InvokeAndAssignArgumentContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private InvokeAndAssignArgumentContextImpl() {
-	}
+    private InvokeAndAssignArgumentContextImpl() {
+    }
 }

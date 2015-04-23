@@ -34,152 +34,173 @@ public class XAllocNodesFinder {
 	private CallGraph cg;
 	private XLoopFinder loopfinder;
 	private final Set<AllocNode> allocNodes;
-	private final Set<AllocNode> multiRunAllocNodes;
+	private final Set<AllocNode>  multiRunAllocNodes;
 	private final Set<Object> multiCalledMethods;
-
-	// private final HashMap methodsToMultiObjsSites;
-
-	XAllocNodesFinder() {
+	//private final HashMap methodsToMultiObjsSites;
+	
+	XAllocNodesFinder()
+	{
 		this.pag = XG.v().getPAG();
 		this.pcg = XG.v().getPegCallGraph();
 		this.cg = Scene.v().getCallGraph();
 		this.loopfinder = XG.v().getMyLoopFinder();
-
+		
 		allocNodes = new HashSet<AllocNode>();
 		multiRunAllocNodes = new HashSet<AllocNode>();
 		multiCalledMethods = new HashSet<Object>();
-		// methodsToMultiObjsSites = new HashMap();
-
+//		methodsToMultiObjsSites = new HashMap();
+		
 		find();
-
+		
 	}
 
-	private void find() {
+	private void find() 
+	{
 		findMultiCalledMethods();
-
+		
 		Set clinitMethods = pcg.getClinitMethods();
 		Iterator it = pcg.iterator();
-		while (it.hasNext()) {
-			SootMethod sm = (SootMethod) it.next();
-			Chain units = sm.getActiveBody().getUnits();
-			Iterator iterator = units.snapshotIterator();
-			while (iterator.hasNext()) {
-				Stmt stmt = (Stmt) iterator.next();
-				if (stmt instanceof AssignStmt) {
-					Value rightOp = ((AssignStmt) stmt).getRightOp();
-					if (rightOp instanceof NewExpr) {
-
-						if (clinitMethods.contains(sm)) {
+		while (it.hasNext())
+		{
+			SootMethod sm = (SootMethod)it.next();
+		    Chain units = sm.getActiveBody().getUnits();
+		    Iterator iterator = units.snapshotIterator();
+		    while(iterator.hasNext())
+		    {
+		    	Stmt stmt = (Stmt)iterator.next();
+		    	if (stmt instanceof AssignStmt)
+		    	{
+		    		Value rightOp = ((AssignStmt)stmt).getRightOp();
+					if (rightOp instanceof NewExpr)
+					{
+						
+						if (clinitMethods.contains(sm))
+						{
 							AllocNode allocNode = pag.makeAllocNode(
 									PointsToAnalysis.STRING_NODE,
-									RefType.v("java.lang.String"), null);
+									RefType.v( "java.lang.String" ), null );
 							allocNodes.add(allocNode);
-						} else {
-							Type type = ((NewExpr) rightOp).getType();
-							AllocNode allocNode = pag.makeAllocNode(rightOp,
-									type, sm);
+						}
+						else 
+						{
+							Type type = ((NewExpr)rightOp).getType();
+							AllocNode allocNode = pag.makeAllocNode(rightOp, type, sm);
 							allocNodes.add(allocNode);
-
-							if (multiCalledMethods.contains(sm)
-									|| isInLoop(sm, stmt)) {
+							
+							if(multiCalledMethods.contains(sm)||isInLoop(sm,stmt))
+							{
 								multiRunAllocNodes.add(allocNode);
-							} else {
-
+							}
+							else
+							{
+								
 							}
 						}
 					}
-				}
-			}
+		    	}
+		    }
 		}
 	}
 
-	private boolean isInLoop(SootMethod sm, Stmt stmt) {
+	private boolean isInLoop(SootMethod sm, Stmt stmt) 
+	{
 		Collection<List<Stmt>> loops = loopfinder.getLoops(sm);
-		Iterator lpIt = loops.iterator();
-		while (lpIt.hasNext()) {
-			List<Stmt> loop = (List<Stmt>) lpIt.next();
-			if (loop.contains(stmt))
-				return true;
-		}
-		return false;
-
+		Iterator lpIt = loops.iterator(); 
+        while (lpIt.hasNext()) 
+        {
+        	List<Stmt> loop = (List<Stmt>)lpIt.next();
+        	if(loop.contains(stmt))
+        		return true;
+        }
+        return false;
+		
 	}
 
 	private void findMultiCalledMethods() {
-
-		// Use breadth first search to find methods are called more than once in
-		// call graph
-		Set clinitMethods = pcg.getClinitMethods();
+		
+		//Use breadth first search to find methods are called more than once in call graph
+		Set clinitMethods = pcg.getClinitMethods();    
 		Iterator it = pcg.iterator();
-		while (it.hasNext()) {
+		while (it.hasNext())
+		{
 			Object head = it.next();
-			// breadth first scan
+			//breadth first scan
 			Set<Object> gray = new HashSet<Object>();
 			LinkedList<Object> queue = new LinkedList<Object>();
 			queue.add(head);
-
-			while (queue.size() > 0) {
+			
+			while (queue.size()>0)
+			{
 				Object root = queue.getFirst();
 				Iterator succsIt = pcg.getSuccsOf(root).iterator();
-				while (succsIt.hasNext()) {
+				while (succsIt.hasNext())
+				{
 					Object succ = succsIt.next();
-
-					if (!gray.contains(succ)) {
+					
+					if (!gray.contains(succ)){
 						gray.add(succ);
 						queue.addLast(succ);
-					} else if (clinitMethods.contains(succ))
-						continue;
-					else {
+					}
+					else if(clinitMethods.contains(succ))  continue;
+					else
+					{
 						multiCalledMethods.add(succ);
 					}
 				}
 				queue.remove(root);
 			}
 		}
-
+		
 		pcg.trim();
-
+		
 		Set<Object> first = new HashSet<Object>();
 		Set<Object> second = new HashSet<Object>();
-
+		
 		// Visit each node
 		it = pcg.iterator();
-		while (it.hasNext()) {
-			Object s = it.next();
-
-			if (!second.contains(s)) {
-
+		while (it.hasNext()){
+			Object s =it.next();
+			
+			if (!second.contains(s)){
+				
 				visitNode(s, first, second);
 			}
 		}
-
+		
 	}
 
-	private void visitNode(Object node, Set<Object> first, Set<Object> second) {
-		if (first.contains(node)) {
+	private void visitNode(Object node, Set<Object> first, Set<Object> second) 
+	{
+		if (first.contains(node))
+		{
 			second.add(node);
-			if (!multiCalledMethods.contains(node)) {
+			if (!multiCalledMethods.contains(node))
+			{
 				multiCalledMethods.add(node);
 			}
-		} else {
+		}
+		else
+		{
 			first.add(node);
 		}
-
+		
 		Iterator it = pcg.getTrimSuccsOf(node).iterator();
-		while (it.hasNext()) {
+		while (it.hasNext()){
 			Object succ = it.next();
-			if (!second.contains(succ)) {
+			if (!second.contains(succ)){
 				visitNode(succ, first, second);
 			}
 		}
-
+		
 	}
-
-	public Set<AllocNode> getMultiRunAllocNodes() {
-		return multiRunAllocNodes;
+	
+	public Set<AllocNode> getMultiRunAllocNodes()
+	{
+		return  multiRunAllocNodes;
 	}
-
-	public Set<Object> getMultiCalledMethods() {
+	
+	public Set<Object> getMultiCalledMethods()
+	{
 		return multiCalledMethods;
 	}
 }

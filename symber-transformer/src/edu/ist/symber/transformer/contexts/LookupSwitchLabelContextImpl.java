@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class LookupSwitchLabelContextImpl implements SwitchContext {
-	private static LookupSwitchLabelContextImpl ourInstance = new LookupSwitchLabelContextImpl();
+    private static LookupSwitchLabelContextImpl ourInstance = new LookupSwitchLabelContextImpl();
 
-	public static LookupSwitchLabelContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static LookupSwitchLabelContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private LookupSwitchLabelContextImpl() {
-	}
+    private LookupSwitchLabelContextImpl() {
+    }
 }

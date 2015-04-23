@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class LHSContextImpl implements LHSContext {
-	private static LHSContextImpl ourInstance = new LHSContextImpl();
+    private static LHSContextImpl ourInstance = new LHSContextImpl();
 
-	public static LHSContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static LHSContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private LHSContextImpl() {
-	}
+    private LHSContextImpl() {
+    }
 }

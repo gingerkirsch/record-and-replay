@@ -1,5 +1,4 @@
 package edu.ist.symber.transformer.loop;
-
 import soot.toolkits.graph.*;
 import java.util.*;
 
@@ -14,53 +13,51 @@ import java.util.*;
 //
 // -Richard L. Halpert, 2006-11-30
 
-public class MyLoopBodyFinder {
-
-	private final Stack<Object> stack = new Stack<Object>();
+public class MyLoopBodyFinder{
+	
+	private final Stack<Object> stack = new Stack<Object>();   
 	private final Set<Set<Object>> loops = new HashSet<Set<Object>>();
-
-	MyLoopBodyFinder(Map<Object, Object> backEdges, DirectedGraph g) {
+	MyLoopBodyFinder(Map<Object, Object> backEdges, DirectedGraph g){
 		findLoopBody(backEdges, g);
 	}
-
-	private void findLoopBody(Map<Object, Object> backEdges, DirectedGraph g) {
+	private void findLoopBody(Map<Object, Object> backEdges, DirectedGraph g){
 		Set maps = backEdges.entrySet();
-		for (Iterator iter = maps.iterator(); iter.hasNext();) {
-			Map.Entry entry = (Map.Entry) iter.next();
+		for(Iterator iter=maps.iterator(); iter.hasNext();){
+			Map.Entry entry = (Map.Entry)iter.next();
 			Object tail = entry.getKey();
-			// Tag tag = (Tag)key.getTags().get(0);
+			//Tag tag = (Tag)key.getTags().get(0);
 			// System.out.println("---key=  "+tag+" "+key);
-			Object head = entry.getValue();
-			Set<Object> loopBody = finder(tail, head, g);
+			Object  head  = entry.getValue();
+			Set<Object> loopBody = finder(tail, head, g); 
 			loops.add(loopBody);
 		}
-
+		
 	}
-
-	private Set<Object> finder(Object tail, Object head, DirectedGraph g) {
+	
+	
+	private Set<Object> finder(Object tail, Object head, DirectedGraph g){
 		Set<Object> loop = new HashSet<Object>();
 		stack.empty();
 		loop.add(head);
 		insert(tail, loop);
-		while (!stack.empty()) {
+		while (!stack.empty()){
 			Object p = stack.pop();
-			Iterator predsListIt = g.getPredsOf(p).iterator();
-			while (predsListIt.hasNext()) {
+			Iterator  predsListIt = g.getPredsOf(p).iterator();
+			while (predsListIt.hasNext()){
 				Object pred = predsListIt.next();
 				insert(pred, loop);
 			}
 		}
 		return loop;
 	}
-
-	private void insert(Object m, Set<Object> loop) {
-		if (!loop.contains(m)) {
+	
+	private void insert(Object m, Set<Object> loop){
+		if (!loop.contains(m)){
 			loop.add(m);
 			stack.push(m);
 		}
 	}
-
-	public Set<Set<Object>> getLoopBody() {
+	public Set<Set<Object>> getLoopBody(){
 		return loops;
 	}
 }

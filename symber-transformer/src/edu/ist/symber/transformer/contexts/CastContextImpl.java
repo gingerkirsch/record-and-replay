@@ -34,12 +34,12 @@
 package edu.ist.symber.transformer.contexts;
 
 public class CastContextImpl implements SpecialContext {
-	private static CastContextImpl ourInstance = new CastContextImpl();
+    private static CastContextImpl ourInstance = new CastContextImpl();
 
-	public static CastContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static CastContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private CastContextImpl() {
-	}
+    private CastContextImpl() {
+    }
 }

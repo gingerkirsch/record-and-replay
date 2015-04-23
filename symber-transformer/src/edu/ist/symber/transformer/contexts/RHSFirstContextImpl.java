@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class RHSFirstContextImpl implements LocalOrConstantContext {
-	private static RHSFirstContextImpl ourInstance = new RHSFirstContextImpl();
+    private static RHSFirstContextImpl ourInstance = new RHSFirstContextImpl();
 
-	public static RHSFirstContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static RHSFirstContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private RHSFirstContextImpl() {
-	}
+    private RHSFirstContextImpl() {
+    }
 }

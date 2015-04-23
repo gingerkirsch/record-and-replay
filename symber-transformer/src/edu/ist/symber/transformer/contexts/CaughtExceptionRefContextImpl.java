@@ -33,12 +33,12 @@
 package edu.ist.symber.transformer.contexts;
 
 public class CaughtExceptionRefContextImpl implements LocalContext {
-	private static CaughtExceptionRefContextImpl ourInstance = new CaughtExceptionRefContextImpl();
+    private static CaughtExceptionRefContextImpl ourInstance = new CaughtExceptionRefContextImpl();
 
-	public static CaughtExceptionRefContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static CaughtExceptionRefContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private CaughtExceptionRefContextImpl() {
-	}
+    private CaughtExceptionRefContextImpl() {
+    }
 }

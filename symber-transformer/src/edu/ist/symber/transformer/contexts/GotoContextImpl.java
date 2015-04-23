@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class GotoContextImpl implements GotoContext {
-	private static GotoContextImpl ourInstance = new GotoContextImpl();
+    private static GotoContextImpl ourInstance = new GotoContextImpl();
 
-	public static GotoContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static GotoContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private GotoContextImpl() {
-	}
+    private GotoContextImpl() {
+    }
 }

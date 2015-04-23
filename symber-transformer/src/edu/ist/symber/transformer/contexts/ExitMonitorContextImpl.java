@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class ExitMonitorContextImpl implements LocalOrConstantContext {
-	private static ExitMonitorContextImpl ourInstance = new ExitMonitorContextImpl();
+    private static ExitMonitorContextImpl ourInstance = new ExitMonitorContextImpl();
 
-	public static ExitMonitorContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static ExitMonitorContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private ExitMonitorContextImpl() {
-	}
+    private ExitMonitorContextImpl() {
+    }
 }

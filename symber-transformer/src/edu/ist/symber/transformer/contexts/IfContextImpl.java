@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class IfContextImpl implements IfContext {
-	private static IfContextImpl ourInstance = new IfContextImpl();
+    private static IfContextImpl ourInstance = new IfContextImpl();
 
-	public static IfContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static IfContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private IfContextImpl() {
-	}
+    private IfContextImpl() {
+    }
 }

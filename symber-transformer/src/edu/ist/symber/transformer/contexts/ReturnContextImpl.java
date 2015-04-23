@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class ReturnContextImpl implements LocalOrConstantContext {
-	private static ReturnContextImpl ourInstance = new ReturnContextImpl();
+    private static ReturnContextImpl ourInstance = new ReturnContextImpl();
 
-	public static ReturnContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static ReturnContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private ReturnContextImpl() {
-	}
+    private ReturnContextImpl() {
+    }
 }

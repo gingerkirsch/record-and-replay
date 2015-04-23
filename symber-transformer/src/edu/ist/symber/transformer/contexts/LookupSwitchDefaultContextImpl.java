@@ -31,15 +31,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 package edu.ist.symber.transformer.contexts;
 
 public class LookupSwitchDefaultContextImpl implements SwitchContext {
-	private static LookupSwitchDefaultContextImpl ourInstance = new LookupSwitchDefaultContextImpl();
+    private static LookupSwitchDefaultContextImpl ourInstance = new LookupSwitchDefaultContextImpl();
 
-	public static LookupSwitchDefaultContextImpl getInstance() {
-		return ourInstance;
-	}
+    public static LookupSwitchDefaultContextImpl getInstance() {
+        return ourInstance;
+    }
 
-	private LookupSwitchDefaultContextImpl() {
-	}
+    private LookupSwitchDefaultContextImpl() {
+    }
 }
