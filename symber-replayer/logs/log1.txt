@@ -1,0 +1,46 @@
+[
+	{
+		"fieldId":  "0",
+		"events":[ "0", "1"]
+	}
+	{
+		"fieldId":  "1",
+		"events":[ "2", "3"]
+	}
+	{
+		"fieldId":  "2",
+		"events":[ "1", "4"]
+	}
+	{
+		"fieldId":  "3",
+		"events":[ "3", "1"]
+	}
+	{
+		"fieldId":  "4",
+		"events":[ "4", "1"]
+	}
+	{
+		"fieldId":  "5",
+		"events":[ "5", "4"]
+	}
+	{
+		"fieldId":  "6",
+		"events":[ "6", "9"]
+	}
+	{
+		"fieldId":  "7",
+		"events":[ "7", "0"]
+	}
+	{
+		"fieldId":  "8",
+		"events":[ "9", "8"]
+	}
+	{
+		"fieldId":  "9",
+		"events":[ "8", "6"]
+	}
+	{
+		"fieldId":  "10",
+		"events":[ "1", "1"]
+	}
+]
