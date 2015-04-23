@@ -1,5 +1,9 @@
 package edu.ist.symber;
 
+import java.io.IOException;
+import java.io.Writer;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -11,52 +15,67 @@ public class Main {
 
 	/**
 	 * @param args
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
-		long tStart = System.currentTimeMillis();
-		List<String> arg = new LinkedList(Arrays.asList(args));
+	public static void main(String[] args) throws IOException {
+		long start, end;
+		start = System.nanoTime(); //start timestamp
+		Monitor.TIME_OF_SAVEMONITORDATA = start;
+		List<String>  arg = new LinkedList(Arrays.asList(args));
 		int len = arg.size();
-		if (len == 0) {
+		if(len==0)
+		{
 			System.err.println("please specify: <main class> <parameters>... ");
-		} else {
+		}
+		else 
+		{
 			process(arg);
 		}
-		long tEnd = System.currentTimeMillis();
-		long tDelta = tEnd - tStart;
-		double elapsedSeconds = tDelta / 1000.0;
-		System.out.println("Overall time of recording: " + elapsedSeconds
-				+ "sec");
+		end = System.nanoTime(); //** end timestamp
+		double time = (((double)(end - start)/1000000000));
+		System.out.println("Time of recorder with logging time excluded:" +time);
+		Writer writer = new BufferedWriter(new FileWriter("recorder-without-logtime.txt", true));
+		writer.append(time + "\t");
+		writer.append("\r\n");
+		writer.close();//*/
+		System.out.println("\nRECORDER TIME: "+time+"s");
+		
+		
+		//System.out.println("Overall time of recording: " + elapsedSeconds + "sec");
 	}
-
-	private static void process(List<String> args) {
-		Monitor.initialize();// (Integer.valueOf(args.get(0)),Integer.valueOf(args.get(1)));
-
-		run(args);// args.subList(2, args.size()));
+			
+	private static void process(List<String> args)
+	{
+		Monitor.initialize();//(Integer.valueOf(args.get(0)),Integer.valueOf(args.get(1)));
+		
+		run(args);//args.subList(2, args.size()));
 	}
-
-	private static void run(List<String> args) {
-		try {
+	private static void run(List<String> args)
+	{
+		try 
+		{
 			String appname = args.get(0);
-
+			
 			MonitorThread monThread = new MonitorThread(appname);
 			Runtime.getRuntime().addShutdownHook(monThread);
-
+					
 			Class<?> c = Class.forName(appname);
-			Class[] argTypes = new Class[] { String[].class };
-			Method main = c.getDeclaredMethod("main", argTypes);
+		    Class[] argTypes = new Class[] { String[].class };
+		    Method main = c.getDeclaredMethod("main", argTypes);
+		   
+		    String[] mainArgs = {};
 
-			String[] mainArgs = {};
-
-			if (args.size() > 1) {
-				mainArgs = new String[args.size() - 1];
-				for (int k = 0; k < args.size() - 1; k++)
-					mainArgs[k] = args.get(k + 1);
-			}
-			main.invoke(null, (Object) mainArgs);
+		    if(args.size()>1)
+		    {
+		    	mainArgs = new String[args.size()-1];
+		    	for(int k=0;k<args.size()-1;k++)
+		    		mainArgs[k] = args.get(k+1);
+		    }
+		    main.invoke(null, (Object)mainArgs);
 			// production code should handle these exceptions more gracefully
-		} catch (Exception x) {
-			x.printStackTrace();
-		}
+			} catch (Exception x) {
+			    x.printStackTrace();
+			}
 	}
 
 }
