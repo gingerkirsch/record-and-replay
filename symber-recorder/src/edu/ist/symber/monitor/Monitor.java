@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 //import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,6 +26,7 @@ import edu.ist.symber.generator.CrashTestCaseGenerator;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 //** RECORDER
 public class Monitor {
@@ -549,23 +551,27 @@ public class Monitor {
 					+ File.separator + LOG_FILE_NAME + key
 					+ FILE_EXTENSION_JSON);
 			JSONArray jsList = new JSONArray();
+			ArrayList<String> list = new ArrayList<String>();
+			JSONObject jsObj = new JSONObject();
 			for (Event event : entry.getValue()) {
 				//System.out.println(event);
-				JSONObject jsObj = new JSONObject();
+				jsObj = new JSONObject();
+				//jsObj.clear();
 				jsObj.put("threadId", event.getThreadId());
-				jsObj.put("eventId", event.getEventId());
-				jsObj.put("eventType", event.getEventType().toString());
-				jsObj.put("version", event.getVersion());
-				jsObj.put("subversion", event.getSubversion());
+				jsObj.put("eventId", String.valueOf(event.getEventId()));
+				jsObj.put("eventType",  String.valueOf(event.getEventType().toString()));
+				jsObj.put("version",  String.valueOf(event.getVersion()));
+				jsObj.put("subversion",  String.valueOf(event.getSubversion()));
 				if (event.getEventType().equals(EventType.LOCK)){
-					jsObj.put("monitorId", event.getFieldId());
+					jsObj.put("monitorId",  String.valueOf(event.getFieldId()));
 				} else {
-					jsObj.put("fieldId", event.getFieldId());
-					jsObj.put("value", event.getValue());
+					jsObj.put("fieldId",  String.valueOf(event.getFieldId()));
+					jsObj.put("value",  String.valueOf(event.getValue()));
 					
 				}
 				//System.out.println(jsObj);
 				jsList.add(jsObj);
+				list.add(String.valueOf(jsObj.get("eventId")));
 				// conflict list logic
 				String fieldVersionKey = event.getFieldId() + ":"
 						+ event.getVersion();
@@ -578,6 +584,8 @@ public class Monitor {
 				}
 			}
 			System.out.println(jsList);
+			//System.out.println(list);
+			JSONValue.toJSONString(jsList);
 			try {
 				jsList.writeJSONString(printWriter);
 			} catch (IOException e) {
