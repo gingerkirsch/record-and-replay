@@ -2,19 +2,19 @@ package edu.ist.symber.common;
 
 import java.io.Serializable;
 
-public class Pair<K extends Comparable<K>, V> implements Serializable {
+public class Pair<K extends Comparable<K>, V> implements Serializable{
 
 	public K k;
 	public V v;
-
+	
 	public Pair(K k, V v) {
 		super();
 		this.k = k;
 		this.v = v;
 	}
-
+	
 	public Pair(Pair<K, V> p) {
-		if (p != null) {
+		if(p != null){
 			this.k = p.k;
 			this.v = p.v;
 		}
@@ -23,25 +23,21 @@ public class Pair<K extends Comparable<K>, V> implements Serializable {
 	public K getFirst() {
 		return k;
 	}
-
 	public void setFirst(K k) {
 		this.k = k;
 	}
-
 	public V getSecond() {
 		return v;
 	}
-
 	public void setSecond(V v) {
 		this.v = v;
 	}
-
-	public String toString() {
-		if (k == null || v == null)
+	
+	public String toString(){
+		if(k == null || v == null)
 			return "";
-		return "(" + k.toString() + "," + v.toString() + ")";
+		return "("+k.toString()+","+v.toString()+")";
 	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -53,9 +49,9 @@ public class Pair<K extends Comparable<K>, V> implements Serializable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (!(obj instanceof Pair<?, ?>))
+		if (!(obj instanceof Pair<?,?>))
 			return false;
-		Pair<?, ?> other = (Pair<?, ?>) obj;
+		Pair<?, ?> other = (Pair<?,?>) obj;
 		if (k == null) {
 			if (other.k != null)
 				return false;

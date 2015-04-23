@@ -4,20 +4,23 @@ public class SharedVarState {
 	public int varId;
 	public long storeClock;
 	public long loadCount;
-
-	public SharedVarState() {
+	
+	public SharedVarState()
+	{
 		storeClock = 0;
 		loadCount = 0;
 	}
-
-	public SharedVarState(int id) {
+	
+	public SharedVarState(int id)
+	{
 		varId = id;
 		storeClock = 0;
 		loadCount = 0;
 	}
-
-	public String toString() {
-		return ("[" + varId + "]\tstoreClock: " + storeClock + "\tloadCount: " + loadCount);
+	
+	public String toString()
+	{
+		return ("["+varId+"]\tstoreClock: "+storeClock+"\tloadCount: "+loadCount);
 	}
-
+	
 }
