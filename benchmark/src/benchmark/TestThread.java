@@ -1,6 +1,8 @@
 package benchmark;
 
-public class TestThread extends Thread {
+import java.util.concurrent.locks.ReentrantLock;
+
+public class TestThread extends Thread{
 
 	BankBenchmark bank;
 
@@ -8,32 +10,39 @@ public class TestThread extends Thread {
 		this.bank = bank;
 	}
 
-	public void run() {
-		try {
-			int it = 5;
-			while (it > 0) {
-				if (it % 2 == 0) {
-					for (int i = 0; i < 30; i++) {
-						final int srcIndex = (i * (it + 1)) % bank.numAccounts;
-						final int dstIndex = ((i + 1) * (it + 2))
-								% bank.numAccounts;
-						bank.transfer(srcIndex, dstIndex);
-					}
-				} else {
-					try {
-						this.sanityCheck();
-					} catch (Exception e) {
-						"Crashed_with".equals(e);
-						BankApp.hasbug = true;
-					}
+	public void run() {  
+		try 
+			{
+				for (int i = 0; i < BankApp.NUM_OPS / BankApp.NUM_THREADS; i++) 
+				{
+					final int srcIndex = (i)%bank.numAccounts;
+					final int dstIndex = (i + 1)%bank.numAccounts;
+					bank.transfer(srcIndex, dstIndex);/*
+					BankBenchmark.lock.lock();
+					bank.transfer(srcIndex, dstIndex);
+					BankBenchmark.lock.unlock();
+					//*/
 				}
-				it--;
+			} 
+			/*else 
+			{
+				try{
+					this.sanityCheck();	
+				}
+				catch(Exception e)
+				{
+					"Crashed_with".equals(e);
+					BankApp.hasbug = true;
+				}
+			} */
+			catch (Exception g) 
+			{
 			}
-		} catch (Exception g) {
 		}
-	}
 
-	public void sanityCheck() throws Exception {
+
+
+	public void sanityCheck() throws Exception{
 		if (!bank.checkBalances()) {
 			throw new Exception();
 		}
