@@ -149,6 +149,11 @@ public class Z3Connector {
 		writeLineZ3("(assert (>= "+name+" "+min+"))\n(assert (<= "+name+" "+max+"))");
 		return name;
 	}
+	
+	public Object declareConst(String name) {
+		writeLineZ3("(declare-const "+name+" Int)");
+		return name;
+	}
 
 	public String makeIntVarAndStore(String name, int min, int max) {
 		makeIntVar(name, min, max);
