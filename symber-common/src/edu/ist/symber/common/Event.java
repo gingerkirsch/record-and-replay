@@ -95,45 +95,20 @@ public class Event {
 			case READ: result.append("R-"); 
 				result.append("field_"+this.fieldId+"-");
 				result.append("v"+this.version+"."+this.subversion+"-");
-				result.append("th"+this.threadId+".."+this.eventId+"@");
+				result.append("th"+this.threadId+"."+this.eventId+"@");
 				result.append(this.value);
 				break;
 			case WRITE: result.append("W-"); 
 				result.append("field_"+this.fieldId+"-");
 				result.append("v"+this.version+"."+this.subversion+"-");
-				result.append("th"+this.threadId+".."+this.eventId+"@");
+				result.append("th"+this.threadId+"."+this.eventId+"@");
 				result.append(this.value);
 				break;
 			case LOCK: 
 				result.append("L-"); 
 				result.append("monitor_"+this.fieldId+"-");
 				result.append("v"+this.version+"."+this.subversion+"-");
-				result.append("th"+this.threadId+".."+this.eventId+"@");
-				break;
-		}
-		return result.toString();
-	}
-
-	public String getConstraintName(){
-		StringBuilder result = new StringBuilder();
-		switch (this.getEventType()){
-			case READ: result.append("R-"); 
-				result.append("field_"+this.fieldId+"-");
-				result.append("v"+this.version+"."+this.subversion+"-");
-				result.append("th"+this.threadId+".."+this.eventId+"@");
-				result.append(this.value);
-				break;
-			case WRITE: result.append("W-"); 
-				result.append("field_"+this.fieldId+"-");
-				result.append("v"+this.version+"."+this.subversion+"-");
-				result.append("th"+this.threadId+".."+this.eventId+"@");
-				result.append(this.value);
-				break;
-			case LOCK: 
-				result.append("L-"); 
-				result.append("monitor_"+this.fieldId+"-");
-				result.append("v"+this.version+"."+this.subversion+"-");
-				result.append("th"+this.threadId+".."+this.eventId+"@");
+				result.append("th"+this.threadId+"."+this.eventId+"@");
 				break;
 		}
 		return result.toString();
