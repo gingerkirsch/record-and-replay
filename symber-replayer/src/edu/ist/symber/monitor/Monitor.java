@@ -329,8 +329,8 @@ public class Monitor {
 		try {
 			String currentThread = threadId; // ** current thread trying to
 												// execute the shared operation
-			/*if(currentThread.contains("main")) 
-				currentThread = "0";*/
+			if(currentThread.contains("main")) 
+				currentThread = "0";
 			String nextThread = accessVector[fieldId].get(0).getThreadId(); // **
 																			// next
 																			// allowed
@@ -988,6 +988,8 @@ public class Monitor {
 	public synchronized static void startRunThreadBefore(Thread t,
 			String parentId) {
 		try {
+			if(parentId.contains("main")) 
+				parentId = "0";
 			int childCounter = threadChildrenCounter.get(parentId);
 			String newThreadName;
 
