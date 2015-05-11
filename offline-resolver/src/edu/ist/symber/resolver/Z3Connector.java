@@ -11,15 +11,17 @@ import java.io.OutputStream;
 import java.util.List;
 
 public class Z3Connector {
-	Process process;
-	OutputStream stdin;
-	InputStream stdout;
-	BufferedReader brCleanUp;
-	boolean sat;
-	File z3File;
-	FileWriter fw;
-	BufferedWriter bw;
+	private static Process process;
+	private static OutputStream stdin;
+	private static InputStream stdout;
+	private static BufferedReader brCleanUp;
+	private static boolean sat;
+	private static File z3File, z3Solution;
+	private static FileWriter fw, fsw;
+	private static BufferedWriter bw, bsw;
 	boolean isMacOS = false;
+	private static final String INPUT_FILE_PATH = "d:\\record-and-replay\\offline-resolver\\z3output\\z3InputFile.txt";
+	private static final String RESULT_FILE_PATH = "d:\\record-and-replay\\offline-resolver\\z3output\\z3Solution.txt";
 
 	public Z3Connector() {
 		try {
@@ -30,20 +32,24 @@ public class Z3Connector {
 				process = Runtime.getRuntime().exec("./lib/z3_mac -smt2 -in");
 			}
 			else{
-				process = Runtime.getRuntime().exec("d:\\record-and-replay\\offline-resolver\\lib\\z3.exe -smt2 -in");
+				process = Runtime.getRuntime().exec("lib\\z3.exe -smt2 -in");
 			}
 			stdin = process.getOutputStream();
 			stdout = process.getInputStream();
 			brCleanUp = new BufferedReader (new InputStreamReader (stdout));
 			
-			
-			
-			z3File = new File(".\\z3InputFile.txt");
+			z3File= new File(INPUT_FILE_PATH);
+			z3Solution = new File(RESULT_FILE_PATH);
 			if (!z3File.exists()) {
 				z3File.createNewFile();
 			}
+			if (!z3Solution.exists()){
+				z3Solution.createNewFile();
+			}
 			fw = new FileWriter(z3File.getAbsoluteFile());
+			fsw = new FileWriter(z3Solution.getAbsoluteFile());
 			bw = new BufferedWriter(fw);
+			bsw = new BufferedWriter(fsw);
 			
 //			stdin.write(("(declare-const x Int)\n(assert (>= x 0))\n(assert (<= x 50))\n(check-sat)\n").getBytes());
 //			stdin.flush();
@@ -72,9 +78,7 @@ public class Z3Connector {
 			stdin.flush();
 			bw.write(content);
 			bw.flush();
-			//System.out.println("[stdoutZ3] "+content);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.out.println("Error while posting on Z3");
 		}
@@ -94,13 +98,16 @@ public class Z3Connector {
 			bw.write(content);
 			bw.flush();
 			String line = brCleanUp.readLine();
-			while (line!=null){
-				System.out.println("[Z3:stdout] "+line);
+			while (line.length() != 1){ 
+				//System.out.println("[Z3:stdout] "+line);
+				bsw.write(line+"\n");
+				bsw.flush();
 				line = brCleanUp.readLine();
 			}
+			
+
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		//System.out.println("Modelo:" + model.constraintsToString());
@@ -112,7 +119,7 @@ public class Z3Connector {
 			String line = "";
 			
 			// Checking satisfiability
-			System.out.println("Z3: About to solve");
+			//System.out.println("Z3: About to solve");
 			long startTime = System.nanoTime();
 			
 			stdin.write(("(check-sat)\n").getBytes());
@@ -124,17 +131,17 @@ public class Z3Connector {
 			
 			long endTime = System.nanoTime();
 			double duration = ((double) (endTime - startTime)) / 1000000000;
-			System.out.println("Duration solving phase: "+duration+"(s)");
+			//System.out.println("Duration solving phase: "+duration+"(s)");
 			
 			if (line.equals("sat")){
-				System.out.println("It is satisfiable?: "+line);
+				//System.out.println("It is satisfiable?: "+line);
 				//this.printModel();
 				//bw.close();
 				return true;
 			}else{
 				//bw.close();
-				System.out.println("[Z3stdout] unsat");
-				System.out.println(line);
+				//System.out.println("[Z3stdout] unsat");
+				//System.out.println(line);
 				return false;
 			}
 		} catch (IOException e) {
