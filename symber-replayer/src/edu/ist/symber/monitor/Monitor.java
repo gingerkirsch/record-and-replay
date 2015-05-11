@@ -329,6 +329,8 @@ public class Monitor {
 		try {
 			String currentThread = threadId; // ** current thread trying to
 												// execute the shared operation
+			/*if(currentThread.contains("main")) 
+				currentThread = "0";*/
 			String nextThread = accessVector[fieldId].get(0).getThreadId(); // **
 																			// next
 																			// allowed
@@ -338,7 +340,6 @@ public class Monitor {
 																			// the
 																			// recorded
 																			// interleaving
-
 			while (!currentThread.equals(nextThread)) {
 				if (Parameters.isDebug)
 					System.out.println("[OREO-Replayer] beforeLoad:\tT"
@@ -460,6 +461,8 @@ public class Monitor {
 		try {
 			String currentThread = threadId; // ** current thread trying to
 												// execute the shared operation
+			if(currentThread.contains("main")) 
+				currentThread = "0";
 			String nextThread = accessVector[fieldId].get(0).getThreadId(); // **
 																			// next
 																			// allowed
@@ -469,7 +472,6 @@ public class Monitor {
 																			// the
 																			// recorded
 																			// interleaving
-
 			while (!currentThread.equals(nextThread)) {
 				if (Parameters.isDebug)
 					System.out.println("[OREO-Replayer] beforeStore:\tT"
