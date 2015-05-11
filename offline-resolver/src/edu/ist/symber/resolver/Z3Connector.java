@@ -492,7 +492,21 @@ public class Z3Connector {
 	public void post(Object constraint) {
 		writeLineZ3("(assert "+constraint+")");
 	}
+	
+	public Object name(Object constraint, String name) {
+		return "(! "+constraint+":named "+name+" )";
+	}
 
+	public Object distinct(List<Object> exps) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("(distinct ");
+		for (Object exp : exps){
+			sb.append(exp+" ");
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+	
 	public Object shiftL(int value, Object exp) {
 		throw new RuntimeException("## Unsupported shiftL");
 	}

@@ -38,12 +38,13 @@ public class ConstraintsCreator {
 		//visualiseReadOrderMemoryConstraints(2);
 		//visualiseWriteOrderMemoryConstraints(2);
 		z3.writeLineZ3("(set-option :produce-unsat-cores true)\n");
+		createMemoryOrderConstraints();
 		try {
 			createrReadWriteConstraints();
 		} catch (NoMatchFound e) {
 			e.printStackTrace();
 		}
-		createMemoryOrderConstraints();
+
 		z3.solve();
 		z3.printModel();
 
@@ -98,7 +99,6 @@ public class ConstraintsCreator {
 		for (Entry<Integer, ArrayList<Event>> entry : logs.entrySet()) {
 			for (int i = 0; i < entry.getValue().size(); i++) {
 				Event event = entry.getValue().get(i);
-				//System.out.println(event.getOrderConstraintName());
 				switch (event.getEventType()) {
 				case READ:
 					if (!readDomain.containsKey(event.getFieldId())) {
@@ -168,38 +168,32 @@ public class ConstraintsCreator {
 	
 	private static void createrReadWriteConstraints() throws NoMatchFound {
 		z3.writeLineZ3("(echo \"READ-WRITE CONSTRAINTS -----\")\n");
-		int min = 0;
-		int max = 0;
-		for (Entry<Integer, ArrayList<Event>> entry : logs.entrySet()) {
-			max = max + entry.getValue().size();
-		}
+
 		for (Entry<Integer, List<Event>> readops : readDomain.entrySet()) {
 			for (int i = 0; i < readops.getValue().size(); i++) {
 				Event read = readops.getValue().get(i);
-				z3.makeIntVar(read.getOrderConstraintName(), min, max);
 				Pair<Integer, Object> key = new Pair<Integer, Object>(
 						read.getFieldId(), read.getValue());
 				if (writeSetValue.containsKey(key)) {
 					if (writeSetValue.get(key).size() == 1) {
 						// exact match
-						z3.post(z3.lt(writeSetValue.get(key).get(0)
-								.getOrderConstraintName(),
-								read.getOrderConstraintName()));
+						Event write = writeSetValue.get(key).get(0);
+						z3.post(z3.lt(write.getOrderConstraintName(), read.getOrderConstraintName()));
 					} else {
 						StringBuilder constraint = new StringBuilder();
 						for (int j = 0; j < writeSetValue.get(key).size(); j++) {
 							String R = read.getOrderConstraintName();
-							String W1 = writeSetValue.get(key).get(j).getOrderConstraintName();
+							Event write1 = writeSetValue.get(key).get(j);
+							String W1 = write1.getOrderConstraintName();
 							List<Event> restW = new ArrayList<Event>();
 							restW.addAll(writeSetValue.get(key));
 							restW.remove(j);
-							for (Event write : restW){
-								String W2 = write.getOrderConstraintName();
+							for (Event write2 : restW){
+								String W2 = write2.getOrderConstraintName();
 								constraint.append(z3.or(z3.and(z3.lt(R, W1),z3.or(z3.lt(W2, W1), z3.lt(R, W2))), z3.and(z3.lt(R, W2),z3.or(z3.lt(W1, W2), z3.lt(R, W1)))));
 							}
 						}
-						//System.out.println(constraint.toString());
-						z3.post(z3.and(constraint.toString()));
+						z3.post(z3.name(z3.and(constraint.toString()), "RW"+i));
 					}
 				} else {
 					throw new NoMatchFound();
@@ -210,17 +204,25 @@ public class ConstraintsCreator {
 	}
 
 	private static void createMemoryOrderConstraints() {
+		int min = 0;
+		int max = 0;
+		List<Object> distinctEvents = new ArrayList<Object>();
+		for (Entry<Integer, ArrayList<Event>> entry : logs.entrySet()) {
+			max = max + entry.getValue().size();
+			for (Event e : entry.getValue())
+				distinctEvents.add(e.getOrderConstraintName());
+		}
+		
 		z3.writeLineZ3("(echo \"MEMORY-ORDER CONSTRAINTS -----\")\n");
 		for (Entry<Integer, ArrayList<Event>> entry : logs.entrySet()) {
 			List<Object> events = new ArrayList<Object>();
 			for (Event event : entry.getValue()){
-/*				if (event.getEventType().equals(EventType.READ)){
-					z3.declareConst(event.getConstraintName());
-				}*/
+				z3.makeIntVar(event.getOrderConstraintName(), min, max);
 				events.add(event.getOrderConstraintName());
 			}
-			z3.post(z3.lt(events));
+			z3.post(z3.name(z3.lt(events), "MOth"+entry.getKey()));
 		}
+		z3.post(z3.distinct(distinctEvents));
 	}
 
 }
