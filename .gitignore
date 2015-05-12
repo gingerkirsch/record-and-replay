@@ -43,3 +43,6 @@ local.properties
 
 # TeXlipse plugin
 .texlipse
+*.iml
+*.DS_Store
+*.txt
