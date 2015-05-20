@@ -36,7 +36,7 @@ import edu.ist.symber.common.Pair;
 
 public class Resolver {
 	private static Z3Connector z3 = new Z3Connector();
-	private static final int THREADS = 2;	//has to be the same as in the benchmark
+	private static final int THREADS = 1;	//has to be the same as in the benchmark
 	private static final String LOG_DIR = "d:\\record-and-replay\\symber-recorder\\logs";
 	private static final String OUTPUT_DIR = "d:\\record-and-replay\\symber-replayer\\logs";
 	private static final String NAME = "\\log";
