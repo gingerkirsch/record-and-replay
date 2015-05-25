@@ -1,5 +1,8 @@
 package edu.ist.symber;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -74,6 +77,10 @@ public class Main {
 					main.invoke(null, (Object)mainArgs);
 					endRep = System.nanoTime();
 					System.err.println("\n[OREO-Replayer] REPLAYING TIME: " + Util.getElaspedTime(startRep, endRep)+" seconds");
+					Writer writer = new BufferedWriter(new FileWriter("replayer-logtime.txt", true));
+					writer.append(Util.getElaspedTime(startRep, endRep) + "\t");
+					writer.append("\r\n");
+					writer.close();//*/
 				}catch(InvocationTargetException e)
 				{
 					System.err.println("[OREO-Replayer] ERROR: No such method. Please instrument again the mainclass using the correct mode.");

@@ -19,6 +19,13 @@ public class Monitor{
 	
 	public static void beforeLoad(Object objId, int  fieldId, String threadId, boolean value){}
 	public static void afterLoad(Object objId, int fieldId, String threadId, boolean value){}
+	
+	public static void beforeLoad(Object objId, int  fieldId, String threadId, double value){}
+	public static void afterLoad(Object objId, int fieldId, String threadId, double value){}
+	public static void beforeLoad(Object objId, int  fieldId, String threadId, long value){}
+	public static void afterLoad(Object objId, int fieldId, String threadId, long value){}
+	public static void beforeLoad(Object objId, int  fieldId, String threadId, long[][] value){}
+	public static void afterLoad(Object objId, int fieldId, String threadId, long[][] value){}
 
 	public static void beforeStore(Object objId, int fieldId, String threadId, int value){}
 	public static void afterStore(Object objId, int fieldId, String threadId, int value){}
@@ -28,29 +35,54 @@ public class Monitor{
 	
 	public static void beforeStore(Object objId, int fieldId, String threadId, boolean value){}
 	public static void afterStore(Object objId, int fieldId, String threadId, boolean value){}
+	
+	public static void beforeStore(Object objId, int fieldId, String threadId, double value){}
+	public static void afterStore(Object objId, int fieldId, String threadId, double value){}
+	public static void beforeStore(Object objId, int fieldId, String threadId, long value){}
+	public static void afterStore(Object objId, int fieldId, String threadId, long value){}
+	public static void beforeStore(Object objId, int fieldId, String threadId, long[][] value){}
+	public static void afterStore(Object objId, int fieldId, String threadId, long[][] value){}
+	
 	public static void afterStore(Object objId, int fieldId, String threadId){}
 	
 	//** for static fields
 	public static void beforeLoad(int fieldId, String threadId){}
 	public static void beforeLoad(int fieldId, String threadId, Object value){}
-	public static void afterLoad(int fieldId, String threadId, Object value){}
-	
 	public static void beforeLoad(int fieldId, String threadId, int value){}
-	public static void afterLoad(int fieldId, String threadId, int value){}
-	
 	public static void beforeLoad(int fieldId, String threadId, boolean value){}
+	public static void beforeLoad(int fieldId, String threadId, double value){}
+	public static void beforeLoad(int fieldId, String threadId, long[][] value){}
+	public static void beforeLoad(int fieldId, String threadId, long value){}
+	public static void beforeLoad(int fieldId, String threadId, double[] value){}
+	public static void beforeLoad(int fieldId, String threadId, int[] value){}
+	
+	public static void afterLoad(int fieldId, String threadId, Object value){}
+	public static void afterLoad(int fieldId, String threadId, double value){}
+	public static void afterLoad(int fieldId, String threadId, long value){}
+	public static void afterLoad(int fieldId, String threadId, int value){}
 	public static void afterLoad(int fieldId, String threadId, boolean value){}
+	public static void afterLoad(int fieldId, String threadId, long[][] value){}
+	public static void afterLoad(int fieldId, String threadId, double[] value){}
+	public static void afterLoad(int fieldId, String threadId, int[] value){}
 	
 	public static void beforeStore(int fieldId, String threadIdl, Object value){}
-	public static void afterStore(int fielId, String threadId, Object value){}
-	
 	public static void beforeStore(int fieldId, String threadId, int value){}
-	public static void afterStore(int fieldId, String threadId, int value){}
-	
 	public static void beforeStore(int fieldId, String threadId, boolean value){}
-	public static void afterStore(int fieldId, String threadId, boolean value){}
+	public static void beforeStore(int fieldId, String threadId, long[][] value){}
+	public static void beforeStore(int fieldId, String threadId, double value){}
+	public static void beforeStore(int fieldId, String threadId, long value){}
+	public static void beforeStore(int fieldId, String threadId, double[] value){}
+	public static void beforeStore(int fieldId, String threadId, int[] value){}
 	
 	public static void afterStore(int fieldId, String threadId){}
+	public static void afterStore(int fieldId, String threadId, int value){}
+	public static void afterStore(int fielId, String threadId, Object value){}
+	public static void afterStore(int fieldId, String threadId, boolean value){}
+	public static void afterStore(int fieldId, String threadId, long[][] value){}
+	public static void afterStore(int fieldId, String threadId, double value){}
+	public static void afterStore(int fieldId, String threadId, long value){}
+	public static void afterStore(int fieldId, String threadId, double[] value){}
+	public static void afterStore(int fieldId, String threadId, int[] value){}
 	
 	public static void afterMonitorEnterStatic(Object o, int monitorId, String threadId, String monitorName){}
 	

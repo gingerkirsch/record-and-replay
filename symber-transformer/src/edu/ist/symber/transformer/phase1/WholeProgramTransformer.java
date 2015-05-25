@@ -45,6 +45,7 @@ public class WholeProgramTransformer extends SceneTransformer
 	protected void internalTransform(String pn, Map map)
 	{
 		Visitor.tlo = new ThreadLocalObjectsAnalysis(new SynchObliviousMhpAnalysis());//new UnsynchronizedMhpAnalysis());
+		//Visitor.tlo = t;//new UnsynchronizedMhpAnalysis());
 		Visitor.ftea = new XFieldThreadEscapeAnalysis();
 		Visitor.pecg = new PegCallGraph(Scene.v().getCallGraph());
 	

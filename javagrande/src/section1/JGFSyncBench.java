@@ -20,6 +20,11 @@ package section1;
 **************************************************************************/
 
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+
 import jgfutil.*; 
 
 public class JGFSyncBench implements JGFSection1{
@@ -120,7 +125,9 @@ public class JGFSyncBench implements JGFSection1{
  }
 
     public static void main(String[] argv) {
-
+    	long start, end;
+		start = System.nanoTime(); //start timestamp
+    	
       if(argv.length != 0 ) {
         nthreads = Integer.parseInt(argv[0]);
       } else {
@@ -132,7 +139,23 @@ public class JGFSyncBench implements JGFSection1{
       JGFInstrumentor.printHeader(1,0,nthreads);
       JGFSyncBench sb = new JGFSyncBench(nthreads);
       sb.JGFrun();
-    }
+      
+      end = System.nanoTime(); //** end timestamp
+      double time = (((double)(end - start)/1000000000));
+      Writer writer;
+      try {
+			writer = new BufferedWriter(new FileWriter(
+					"original-time-data-sync.txt", true));
+			writer.append(time + "\t");
+			writer.append("\r\n");
+			writer.close();// */
+			System.out.println("\nEXECUTION TIME: " + time + "s");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
 }
 
 class CounterClass {

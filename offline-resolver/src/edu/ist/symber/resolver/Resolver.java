@@ -42,7 +42,8 @@ public class Resolver {
 	private static final String NAME = "\\log";
 	private static final String EXTENSION = ".json";
 	private static final String SCHEDULE_NAME = "schedule";
-	private static final String SOLUTION_PATH = ".\\z3output\\z3Solution.txt";
+	private static final String SOLUTION_DIR = ".\\z3output"; 
+	private static final String SOLUTION_PATH = "\\z3Solution.txt";
 	private static Map<Integer, ArrayList<Event>> logs = new HashMap<Integer, ArrayList<Event>>();
 	private static Map<Integer, List<Event>> readDomain = new HashMap<Integer, List<Event>>();
 	private static Map<Integer, List<Event>> writeDomain = new HashMap<Integer, List<Event>>();
@@ -70,11 +71,14 @@ public class Resolver {
 		System.out.println("Finding solution with Z3..");
 		z3.solve();
 		z3.printModel();
-		produceLogForReplayer(SOLUTION_PATH);
+		produceLogForReplayer(SOLUTION_DIR + SOLUTION_PATH);
 
 	}
 	
 	private static void produceLogForReplayer(String file) {
+		
+		System.out.println();
+		
 		Map<Integer, Pair<String, String>> order = parseZ3results(file);
 		Map<String, List<String>> schedule = new TreeMap<String, List<String>>();
 		for (Entry <Integer, Pair<String, String>> entry : order.entrySet()){

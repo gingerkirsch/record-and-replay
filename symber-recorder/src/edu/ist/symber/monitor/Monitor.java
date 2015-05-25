@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -34,11 +33,10 @@ public class Monitor {
 	public static Throwable crashedException = null;
 	public static String methodname;
 	public static String[] mainargs;
-	public static Pair<Integer,String> result;
+	public static Pair<Integer, String> result;
 	private static String mainthreadname;
-	//counter
+	// counter
 	private static int eventCounter = 0;
-
 
 	// ** data structures for thread consistent identification
 	public volatile static HashMap<String, Integer> threadChildrenCounter; // **
@@ -79,7 +77,7 @@ public class Monitor {
 	public static Map<String, Integer> localCounters;
 
 	// constants
-	public static double TIME_OF_SAVEMONITORDATA; 
+	public static double TIME_OF_SAVEMONITORDATA;
 	final static String LOGS_DIRECTORY = "logs";
 	final static String LOG_FILE_NAME = "log";
 	final static String CONFLICT_LOG_FILE_NAME = "conflict-log";
@@ -92,279 +90,438 @@ public class Monitor {
 	public static void initialize() {
 		threadChildrenCounter = new HashMap<String, Integer>();
 		MapBackupThreadName = new HashMap<Thread, String>();
-		log = new ConcurrentHashMap<String, LinkedList<Event>>();
-		localCounters = new ConcurrentHashMap<String, Integer>();
+		log = new HashMap<String, LinkedList<Event>>();
+		localCounters = new HashMap<String, Integer>();
 		objVersions = new HashMap<Integer, Integer>();
 		locks = new HashMap<Integer, Lock>();
 	}
 
 	// ** for instance fields
-		public static void beforeLoad(Object objId, int fieldId, String threadId) {
-			beforeLoad(fieldId, threadId);
+	public static void beforeLoad(Object objId, int fieldId, String threadId) {
+		beforeLoad(fieldId, threadId);
+	}
+
+	public static void beforeLoad(Object objId, int fieldId, String threadId,
+			int value) {
+		beforeLoad(fieldId, threadId, value);
+	}
+
+	public static void afterLoad(Object objId, int fieldId, String threadId,
+			int value) {
+		afterLoad(fieldId, threadId, value);
+	}
+
+	public static void beforeLoad(Object objId, int fieldId, String threadId,
+			boolean value) {
+		beforeLoad(fieldId, threadId, value);
+	}
+
+	public static void afterLoad(Object objId, int fieldId, String threadId,
+			boolean value) {
+		afterLoad(fieldId, threadId, value);
+	}
+
+	public static void beforeLoad(Object objId, int fieldId, String threadId,
+			Object value) {
+		beforeLoad(fieldId, threadId, value);
+	}
+
+	public static void afterLoad(Object objId, int fieldId, String threadId,
+			Object value) {
+		// afterLoad(System.identityHashCode(objId)+fieldId, threadId, value);
+		afterLoad(fieldId, threadId, value);
+	}
+
+	public static void beforeLoad(Object objId, int fieldId, String threadId,
+			double value) {
+		afterLoad(fieldId, threadId, value);
+	}
+
+	public static void afterLoad(Object objId, int fieldId, String threadId,
+			double value) {
+		afterLoad(fieldId, threadId, value);
+	}
+
+	public static void beforeLoad(Object objId, int fieldId, String threadId,
+			long value) {
+		afterLoad(fieldId, threadId, value);
+	}
+
+	public static void afterLoad(Object objId, int fieldId, String threadId,
+			long value) {
+		afterLoad(fieldId, threadId, value);
+	}
+
+	public static void beforeStore(Object objId, int fieldId, String threadId,
+			int value) {
+		beforeStore(fieldId, threadId, value);
+	}
+
+	public static void afterStore(Object objId, int fieldId, String threadId,
+			int value) {
+		afterStore(fieldId, threadId, value);
+	}
+
+	public static void beforeStore(Object objId, int fieldId, String threadId,
+			boolean value) {
+		beforeStore(fieldId, threadId, value);
+	}
+
+	public static void afterStore(Object objId, int fieldId, String threadId,
+			boolean value) {
+		afterStore(fieldId, threadId, value);
+	}
+
+	public static void beforeStore(Object objId, int fieldId, String threadId,
+			Object value) {
+		beforeStore(fieldId, threadId, value);
+	}
+
+	public static void afterStore(Object objId, int fieldId, String threadId,
+			Object value) {
+		afterStore(fieldId, threadId, value);
+	}
+
+	public static void afterStore(Object objId, int fieldId, String threadId) {
+		afterStore(fieldId, threadId);
+	}
+
+	public static void beforeStore(Object objId, int fieldId, String threadId,
+			double value) {
+		afterStore(fieldId, threadId, value);
+	}
+
+	public static void afterStore(Object objId, int fieldId, String threadId,
+			double value) {
+		afterStore(fieldId, threadId, value);
+	}
+
+	public static void beforeStore(Object objId, int fieldId, String threadId,
+			long value) {
+		afterStore(fieldId, threadId, value);
+	}
+
+	public static void afterStore(Object objId, int fieldId, String threadId,
+			long value) {
+		afterStore(fieldId, threadId, value);
+	}
+
+	// ** for static fields
+	/**
+	 * Recording load (read) memory access operations
+	 * 
+	 * @param fieldId
+	 * @param threadId
+	 * @param value
+	 */
+	public static void beforeLoad(int fieldId, String threadId) {
+	}
+
+	public static void beforeLoad(int fieldId, String threadId, int value) {
+	}
+
+	public static void beforeLoad(int fieldId, String threadId, boolean value) {
+	}
+
+	public static void beforeLoad(int fieldId, String threadId, Object value) {
+	}
+
+	public static void beforeLoad(int fieldId, String threadId, double value) {
+	}
+
+	public static void beforeLoad(int fieldId, String threadId, long value) {
+	}
+
+	/**
+	 * Recording load (read) memory access operations
+	 * 
+	 * @param fieldId
+	 * @param threadId
+	 * @param value
+	 */
+	public static void afterLoad(int fieldId, String threadId, int value) {
+		int version = 0;
+		try {
+			version = objVersions.get(fieldId);
+		} catch (NullPointerException e) {
+			objVersions.put(fieldId, version);
 		}
 
-		public static void beforeLoad(Object objId, int fieldId, String threadId, int value) {
-			beforeLoad(fieldId, threadId, value);
+		try {
+			String thread = Thread.currentThread().getName();
+			log.get(thread).add(
+					new Event(thread, localCounters.get(thread),
+							EventType.READ, fieldId, version, value));
+			localCounters.put(thread, localCounters.get(thread) + 1);
+
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	public static void afterLoad(int fieldId, String threadId, boolean value) {
+		int version = 0;
+		try {
+			version = objVersions.get(fieldId);
+		} catch (NullPointerException e) {
+			objVersions.put(fieldId, version);
 		}
 
-		public static void afterLoad(Object objId, int fieldId, String threadId, int value) {
-			afterLoad(fieldId, threadId, value);
-		}
+		try {
+			String thread = Thread.currentThread().getName();
+			log.get(thread).add(
+					new Event(thread, localCounters.get(thread),
+							EventType.READ, fieldId, version, value));
+			localCounters.put(thread, localCounters.get(thread) + 1);
 
-		public static void beforeLoad(Object objId, int fieldId, String threadId, boolean value) {
-			beforeLoad(fieldId, threadId, value);
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
 		}
+	}
 
-		public static void afterLoad(Object objId, int fieldId, String threadId, boolean value) {
-			afterLoad(fieldId, threadId, value);
+	public static void afterLoad(int fieldId, String threadId, Object value) {
+		int version = 0;
+		try {
+			version = objVersions.get(fieldId);
+		} catch (NullPointerException e) {
+			objVersions.put(fieldId, version);
 		}
-
-		public static void beforeLoad(Object objId, int fieldId, String threadId, Object value) {
-			beforeLoad(fieldId, threadId, value);
+		try {
+			String thread = Thread.currentThread().getName();
+			log.get(thread).add(
+					new Event(thread, localCounters.get(thread),
+							EventType.READ, fieldId, version, value));
+			localCounters.put(thread, localCounters.get(thread) + 1);
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
 		}
+	}
 
-		public static void afterLoad(Object objId, int fieldId, String threadId, Object value) {
-			//afterLoad(System.identityHashCode(objId)+fieldId, threadId, value);
-			afterLoad(fieldId, threadId, value);
+	public static void afterLoad(int fieldId, String threadId, double value) {
+		int version = 0;
+		try {
+			version = objVersions.get(fieldId);
+		} catch (NullPointerException e) {
+			objVersions.put(fieldId, version);
 		}
+		try {
+			String thread = Thread.currentThread().getName();
+			log.get(thread).add(
+					new Event(thread, localCounters.get(thread),
+							EventType.READ, fieldId, version, value));
+			localCounters.put(thread, localCounters.get(thread) + 1);
 
-		public static void beforeStore(Object objId, int fieldId, String threadId, int value) {
-			beforeStore(fieldId, threadId, value);
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
 		}
+	}
 
-		public static void afterStore(Object objId, int fieldId, String threadId, int value) {
-			afterStore(fieldId, threadId, value);
+	public static void afterLoad(int fieldId, String threadId, long value) {
+		int version = 0;
+		try {
+			version = objVersions.get(fieldId);
+		} catch (NullPointerException e) {
+			objVersions.put(fieldId, version);
 		}
+		try {
+			String thread = Thread.currentThread().getName();
+			log.get(thread).add(
+					new Event(thread, localCounters.get(thread),
+							EventType.READ, fieldId, version, value));
+			localCounters.put(thread, localCounters.get(thread) + 1);
 
-		public static void beforeStore(Object objId, int fieldId, String threadId,
-				boolean value) {
-			beforeStore(fieldId, threadId, value);
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
 		}
+	}
 
-		public static void afterStore(Object objId, int fieldId, String threadId, boolean value) {
-			afterStore(fieldId, threadId, value);
-		}
-
-		public static void beforeStore(Object objId, int fieldId, String threadId, Object value) {
-			beforeStore(fieldId, threadId, value);
-		}
-
-		public static void afterStore(Object objId, int fieldId, String threadId, Object value) {
-			afterStore(fieldId, threadId, value);
-		}
-
-		public static void afterStore(Object objId, int fieldId, String threadId) {
-			afterStore(fieldId, threadId);
-		}
-
-		// ** for static fields
-		/**
-		 * Recording load (read) memory access operations
-		 * 
-		 * @param fieldId
-		 * @param threadId
-		 * @param value
+	/**
+	 * Recording store (writes) memory access operations
+	 * 
+	 * @param fieldId
+	 * @param threadId
+	 * @param value
+	 */
+	public static void beforeStore(int fieldId, String threadId, int value) {
+		// STRIDE {
+		/*
+		 * if (locks.containsKey(Integer.valueOf(fieldId))) {
+		 * locks.get(Integer.valueOf(fieldId)).lock(); } else {
+		 * locks.put(Integer.valueOf(fieldId), new ReentrantLock());
+		 * locks.get(Integer.valueOf(fieldId)).lock(); } // }
 		 */
-		public static void beforeLoad(int fieldId, String threadId) {
+		int version = 0;
+		try {
+			version = objVersions.get(fieldId);
+			version++;
+			objVersions.put(fieldId, version);
+		} catch (NullPointerException e) {
+			objVersions.put(fieldId, version);
 		}
 
-		public static void beforeLoad(int fieldId, String threadId, int value) {
+		try {
+			String thread = Thread.currentThread().getName();
+			log.get(thread).add(
+					new Event(thread, localCounters.get(thread),
+							EventType.WRITE, fieldId, version, value));
+			localCounters.put(thread, localCounters.get(thread) + 1);
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
 		}
+	}
 
-		public static void beforeLoad(int fieldId, String threadId, boolean value) {
-		}
-
-		public static void beforeLoad(int fieldId, String threadId, Object value) {
-		}
-
-		/**
-		 * Recording load (read) memory access operations
-		 * 
-		 * @param fieldId
-		 * @param threadId
-		 * @param value
+	public static void beforeStore(int fieldId, String threadId, boolean value) {
+		// STRIDE {
+		/*
+		 * if (locks.containsKey(Integer.valueOf(fieldId))) {
+		 * locks.get(Integer.valueOf(fieldId)).lock(); } else {
+		 * locks.put(Integer.valueOf(fieldId), new ReentrantLock());
+		 * locks.get(Integer.valueOf(fieldId)).lock(); } // }
 		 */
-		public static void afterLoad(int fieldId, String threadId, int value) {
-			int version = 0;
-			try{
-				version = objVersions.get(fieldId);
-			}
-			catch(NullPointerException e){
-				objVersions.put(fieldId, version);
-			}
-
-			try {
-				String thread = Thread.currentThread().getName();
-				log.get(thread).add(
-					new Event(thread, localCounters.get(thread), EventType.READ, fieldId, version, value));
-				localCounters.put(thread, localCounters.get(thread) + 1);
-			
-			} catch (Exception e) {
-				System.err.println(">> Monitor_ERROR: " + e.getMessage());
-				e.printStackTrace();
-			}
+		int version = 0;
+		try {
+			version = objVersions.get(fieldId);
+			version++;
+			objVersions.put(fieldId, version);
+		} catch (NullPointerException e) {
+			objVersions.put(fieldId, version);
 		}
-
-		public static void afterLoad(int fieldId, String threadId, boolean value) {
-			int version = 0;
-			try{
-				version = objVersions.get(fieldId);
-			}
-			catch(NullPointerException e){
-				objVersions.put(fieldId, version);
-			}
-
-			try{
-				String thread = Thread.currentThread().getName();
-				log.get(thread).add(
-					new Event(thread, localCounters.get(thread), EventType.READ, fieldId, version, value));
-				localCounters.put(thread, localCounters.get(thread) + 1);
-
-			} catch (Exception e) {
-				System.err.println(">> Monitor_ERROR: " + e.getMessage());
-				e.printStackTrace();
-			}
+		try {
+			String thread = Thread.currentThread().getName();
+			log.get(thread).add(
+					new Event(thread, localCounters.get(thread),
+							EventType.WRITE, fieldId, version, value));
+			localCounters.put(thread, localCounters.get(thread) + 1);
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
 		}
+	}
 
-		public static void afterLoad(int fieldId, String threadId, Object value) {
-			int version = 0;
-			try{
-				version = objVersions.get(fieldId);
-			}
-			catch(NullPointerException e){
-				objVersions.put(fieldId, version);
-			}
-			try{
-				String thread = Thread.currentThread().getName();
-				log.get(thread).add(
-					new Event(thread, localCounters.get(thread), EventType.READ, fieldId, version, value));
-				localCounters.put(thread, localCounters.get(thread) + 1);
-			} catch (Exception e) {
-				System.err.println(">> Monitor_ERROR: " + e.getMessage());
-				e.printStackTrace();
-			}
-		}
-
-		/**
-		 * Recording store (writes) memory access operations
-		 * 
-		 * @param fieldId
-		 * @param threadId
-		 * @param value
+	public static void beforeStore(int fieldId, String threadId, Object value) {
+		// STRIDE {
+		/*
+		 * if (locks.containsKey(Integer.valueOf(fieldId))) {
+		 * locks.get(Integer.valueOf(fieldId)).lock(); } else {
+		 * locks.put(Integer.valueOf(fieldId), new ReentrantLock());
+		 * locks.get(Integer.valueOf(fieldId)).lock(); } // }
 		 */
-		public static void beforeStore(int fieldId, String threadId, int value) {
-			//STRIDE {
-			if (locks.containsKey(Integer.valueOf(fieldId))) {
-				locks.get(Integer.valueOf(fieldId)).lock();
-			} else {
-				locks.put(Integer.valueOf(fieldId), new ReentrantLock());
-				locks.get(Integer.valueOf(fieldId)).lock();
-			} 
-			// } */
-			int version = 0;
-			try{
-				version = objVersions.get(fieldId);
-				version++;
-				objVersions.put(fieldId, version);
-			}
-			catch(NullPointerException e){
-				objVersions.put(fieldId, version);
-			}
+		int version = 0;
+		try {
+			version = objVersions.get(fieldId);
+			version++;
+			objVersions.put(fieldId, version);
+		} catch (NullPointerException e) {
+			objVersions.put(fieldId, version);
+		}
+		try {
+			String thread = Thread.currentThread().getName();
+			log.get(thread).add(
+					new Event(thread, localCounters.get(thread),
+							EventType.WRITE, fieldId, version, value));
+			localCounters.put(thread, localCounters.get(thread) + 1);
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 
-			try{
-				String thread = Thread.currentThread().getName();
-				log.get(thread).add(
-					new Event(thread, localCounters.get(thread), EventType.WRITE, fieldId, version, value));
-				localCounters.put(thread, localCounters.get(thread) + 1);
-			} catch (Exception e) {
-				System.err.println(">> Monitor_ERROR: " + e.getMessage());
-				e.printStackTrace();
-			}
+	public static void beforeStore(int fieldId, String threadId, double value) {
+		// STRIDE {
+		/*
+		 * if (locks.containsKey(Integer.valueOf(fieldId))) {
+		 * locks.get(Integer.valueOf(fieldId)).lock(); } else {
+		 * locks.put(Integer.valueOf(fieldId), new ReentrantLock());
+		 * locks.get(Integer.valueOf(fieldId)).lock(); } // }
+		 */
+		int version = 0;
+		try {
+			version = objVersions.get(fieldId);
+			version++;
+			objVersions.put(fieldId, version);
+		} catch (NullPointerException e) {
+			objVersions.put(fieldId, version);
 		}
+		try {
+			String thread = Thread.currentThread().getName();
+			log.get(thread).add(
+					new Event(thread, localCounters.get(thread),
+							EventType.WRITE, fieldId, version, value));
+			localCounters.put(thread, localCounters.get(thread) + 1);
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 
-		public static void beforeStore(int fieldId, String threadId, boolean value) {
-			//STRIDE {
-			if (locks.containsKey(Integer.valueOf(fieldId))) {
-				locks.get(Integer.valueOf(fieldId)).lock();
-			} else {
-				locks.put(Integer.valueOf(fieldId), new ReentrantLock());
-				locks.get(Integer.valueOf(fieldId)).lock();
-			} 
-			// } */
-			int version = 0;
-			try{
-				version = objVersions.get(fieldId);
-				version++;
-				objVersions.put(fieldId, version);
-			}
-			catch(NullPointerException e){
-				objVersions.put(fieldId, version);
-			}
-			try{
-				String thread = Thread.currentThread().getName();
-				log.get(thread).add(
-					new Event(thread, localCounters.get(thread), EventType.WRITE, fieldId, version, value));
-				localCounters.put(thread, localCounters.get(thread) + 1);
-			} catch (Exception e) {
-				System.err.println(">> Monitor_ERROR: " + e.getMessage());
-				e.printStackTrace();
-			}
+	public static void beforeStore(int fieldId, String threadId, long value) {
+		// STRIDE {
+		/*
+		 * if (locks.containsKey(Integer.valueOf(fieldId))) {
+		 * locks.get(Integer.valueOf(fieldId)).lock(); } else {
+		 * locks.put(Integer.valueOf(fieldId), new ReentrantLock());
+		 * locks.get(Integer.valueOf(fieldId)).lock(); } // }
+		 */
+		int version = 0;
+		try {
+			version = objVersions.get(fieldId);
+			version++;
+			objVersions.put(fieldId, version);
+		} catch (NullPointerException e) {
+			objVersions.put(fieldId, version);
 		}
+		try {
+			String thread = Thread.currentThread().getName();
+			log.get(thread).add(
+					new Event(thread, localCounters.get(thread),
+							EventType.WRITE, fieldId, version, value));
+			localCounters.put(thread, localCounters.get(thread) + 1);
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 
-		public static void beforeStore(int fieldId, String threadId, Object value) {
-			//STRIDE { 
-			if (locks.containsKey(Integer.valueOf(fieldId))) {
-						locks.get(Integer.valueOf(fieldId)).lock();
-					} else {
-						locks.put(Integer.valueOf(fieldId), new ReentrantLock());
-						locks.get(Integer.valueOf(fieldId)).lock();
-					} 
-					// } */
-			int version = 0;
-			try{
-				version = objVersions.get(fieldId);
-				version++;
-				objVersions.put(fieldId, version);
-			}
-			catch(NullPointerException e){
-				objVersions.put(fieldId, version);
-			}
-			try{
-				String thread = Thread.currentThread().getName();
-				log.get(thread).add(
-					new Event(thread, localCounters.get(thread), EventType.WRITE, fieldId, version, value));
-				localCounters.put(thread, localCounters.get(thread) + 1);
-			} catch (Exception e) {
-				System.err.println(">> Monitor_ERROR: " + e.getMessage());
-				e.printStackTrace();
-			}
-		}
+	public static void afterStore(int fieldId, String threadId, double value) {
+		// locks.get(Integer.valueOf(fieldId)).unlock(); //STRIDE*/
+	}
 
-		public static void afterStore(int fieldId, String threadId, int value) {
-			locks.get(Integer.valueOf(fieldId)).unlock(); //STRIDE*/
-		}
+	public static void afterStore(int fieldId, String threadId, long value) {
+		// locks.get(Integer.valueOf(fieldId)).unlock(); //STRIDE*/
+	}
 
-		public static void afterStore(int fieldId, String threadId, boolean value) {
-			locks.get(Integer.valueOf(fieldId)).unlock(); //STRIDE*/
-		}
+	public static void afterStore(int fieldId, String threadId, int value) {
+		// locks.get(Integer.valueOf(fieldId)).unlock(); //STRIDE*/
+	}
 
-		public static void afterStore(int fieldId, String threadId, Object value) {
-			locks.get(Integer.valueOf(fieldId)).unlock(); //STRIDE*/
-		}
-		public static void afterStore(int fieldId, String threadId) {
-			locks.get(Integer.valueOf(fieldId)).unlock(); //STRIDE*/
-		}
+	public static void afterStore(int fieldId, String threadId, boolean value) {
+		// locks.get(Integer.valueOf(fieldId)).unlock(); //STRIDE*/
+	}
 
-		// ** for static monitors
-		public static void afterMonitorEnterStatic(Object o, int monitorId,
-				String threadId, String monitorName) {
-			afterMonitorEnter(o.getClass(), monitorId, threadId, monitorName);
-		}
+	public static void afterStore(int fieldId, String threadId, Object value) {
+		// locks.get(Integer.valueOf(fieldId)).unlock(); //STRIDE*/
+	}
 
-		public static void beforeMonitorEnterStatic(Object o, int monitorId,
-				String threadId, String monitorName) {
-			beforeMonitorEnter(o.getClass(), monitorId, threadId, monitorName);
-		}
+	public static void afterStore(int fieldId, String threadId) {
+		// locks.get(Integer.valueOf(fieldId)).unlock(); //STRIDE*/
+	}
+
+	// ** for static monitors
+	public static void afterMonitorEnterStatic(Object o, int monitorId,
+			String threadId, String monitorName) {
+		afterMonitorEnter(o.getClass(), monitorId, threadId, monitorName);
+	}
+
+	public static void beforeMonitorEnterStatic(Object o, int monitorId,
+			String threadId, String monitorName) {
+		beforeMonitorEnter(o.getClass(), monitorId, threadId, monitorName);
+	}
 
 	/**
 	 * Recording calls to condition.signal().
@@ -426,17 +583,18 @@ public class Monitor {
 			String threadId, String monitorName) {
 
 		int version = 0;
-		try{
+		try {
 			version = objVersions.get(monitorId);
 			version++;
 			objVersions.put(monitorId, version);
-		}
-		catch(NullPointerException e){
+		} catch (NullPointerException e) {
 			objVersions.put(monitorId, version);
 		}
 		try {
 			String thread = Thread.currentThread().getName();
-			log.get(thread).add(new Event(thread, localCounters.get(thread), EventType.LOCK, monitorId, version));
+			log.get(thread).add(
+					new Event(thread, localCounters.get(thread),
+							EventType.LOCK, monitorId, version));
 			localCounters.put(thread, localCounters.get(thread) + 1);
 		} catch (Exception e) {
 			System.err.println(">> Monitor_ERROR: " + e.getMessage());
@@ -460,11 +618,13 @@ public class Monitor {
 			threadChildrenCounter.put("0", 1);
 			log.put(mainthreadname, new LinkedList<Event>());
 			localCounters.put(mainthreadname, new Integer(0));
-			
-			/*log.get(mainthreadname).add(
-					new Event(mainthreadname, localCounters.get(mainthreadname), EventType.START));
-			localCounters.put(mainthreadname, localCounters.get(mainthreadname) + 1);*/
 
+			/*
+			 * log.get(mainthreadname).add( new Event(mainthreadname,
+			 * localCounters.get(mainthreadname), EventType.START));
+			 * localCounters.put(mainthreadname,
+			 * localCounters.get(mainthreadname) + 1);
+			 */
 
 		} catch (Exception e) {
 			System.err.println(">> Monitor_ERROR: " + e.getMessage());
@@ -538,12 +698,12 @@ public class Monitor {
 	public static void saveMonitorData(String appname)
 			throws FileNotFoundException {
 		long end;
-	
+
 		String conflitsThreads = "";
 		Integer conflictsRatio = 0;
 		Map<String, HashSet<String>> conflictLog = new HashMap<String, HashSet<String>>();
 
-		for (Entry<String, LinkedList<Event>> entry: log.entrySet()){
+		for (Entry<String, LinkedList<Event>> entry : log.entrySet()) {
 			String key = entry.getKey();
 			File file = new File(LOGS_DIRECTORY);
 			file.mkdirs();
@@ -554,24 +714,38 @@ public class Monitor {
 			ArrayList<String> list = new ArrayList<String>();
 			JSONObject jsObj = new JSONObject();
 			for (Event event : entry.getValue()) {
-				//System.out.println(event);
+				// System.out.println(event);
 				jsObj = new JSONObject();
-				//jsObj.clear();
+				// jsObj.clear();
 				jsObj.put("threadId", event.getThreadId());
 				jsObj.put("eventId", String.valueOf(event.getEventId()));
-				jsObj.put("eventType",  String.valueOf(event.getEventType().toString()));
-				jsObj.put("version",  String.valueOf(event.getVersion()));
-				jsObj.put("subversion",  String.valueOf(event.getSubversion()));
-				if (event.getEventType().equals(EventType.LOCK)){
-					jsObj.put("monitorId",  String.valueOf(event.getFieldId()));
+				jsObj.put("eventType",
+						String.valueOf(event.getEventType().toString()));
+				jsObj.put("version", String.valueOf(event.getVersion()));
+				jsObj.put("subversion", String.valueOf(event.getSubversion()));
+				if (event.getEventType().equals(EventType.LOCK)) {
+					jsObj.put("monitorId", String.valueOf(event.getFieldId()));
 				} else {
-					jsObj.put("fieldId",  String.valueOf(event.getFieldId()));
-					jsObj.put("value",  String.valueOf(event.getValue()));
-					
+					jsObj.put("fieldId", String.valueOf(event.getFieldId()));
+					jsObj.put("value", String.valueOf(event.getValue()));
+
 				}
-				//System.out.println(jsObj);
+				// System.out.println(jsObj);
 				jsList.add(jsObj);
 				list.add(String.valueOf(jsObj.get("eventId")));
+				// conflict list logic
+				if (event.getEventType().equals(EventType.WRITE)) {
+					String fieldVersionKey = event.getFieldId() + ":"
+							+ event.getVersion();
+					if (!conflictLog.containsKey(fieldVersionKey)) {
+						HashSet<String> l = new HashSet<String>();
+						l.add(key);
+						conflictLog.put(fieldVersionKey, l);
+					} else {
+						conflictLog.get(fieldVersionKey).add(key);
+					}
+				}
+
 				// conflict list logic
 				String fieldVersionKey = event.getFieldId() + ":"
 						+ event.getVersion();
@@ -584,7 +758,7 @@ public class Monitor {
 				}
 			}
 			System.out.println(jsList);
-			//System.out.println(list);
+			// System.out.println(list);
 			JSONValue.toJSONString(jsList);
 			try {
 				jsList.writeJSONString(printWriter);
@@ -618,27 +792,31 @@ public class Monitor {
 		result = new Pair<Integer, String>(conflictsRatio, conflitsThreads);
 
 		try {
-			Writer writer = new BufferedWriter(new FileWriter("conflicts.txt", true));
-			writer.append(result.getFirst() + "\t" + result.getSecond() + "\r\n");
+			Writer writer = new BufferedWriter(new FileWriter("conflicts.txt",
+					true));
+			writer.append(result.getFirst() + "\t" + result.getSecond()
+					+ "\r\n");
 			writer.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		end = System.nanoTime(); //** end timestamp
-		double time = (((double)(end - TIME_OF_SAVEMONITORDATA)/1000000000));
-		System.out.println("Time of recorder with logging time included:" +time);
+
+		end = System.nanoTime(); // ** end timestamp
+		double time = (((double) (end - TIME_OF_SAVEMONITORDATA) / 1000000000));
+		System.out.println("Time of recorder with logging time included:"
+				+ time);
 		System.out.println(sb.toString());
 		Writer writer;
 		try {
-			writer = new BufferedWriter(new FileWriter("recorder-with-logtime.txt", true));
+			writer = new BufferedWriter(new FileWriter(
+					"recorder-with-logtime.txt", true));
 			writer.append(time + "\t");
 			writer.append("\r\n");
-			writer.close();//*/
+			writer.close();// */
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("\nRECORDER TIME: "+time+"s");
+		System.out.println("\nRECORDER TIME: " + time + "s");
 	}
 
 	public static void generateTestDriver(String traceFile_) {

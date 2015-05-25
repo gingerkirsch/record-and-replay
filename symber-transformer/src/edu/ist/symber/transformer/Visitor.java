@@ -1118,7 +1118,6 @@ public class Visitor {
 			args.addLast(base);
 			args.addLast(IntConstant.v(fieldId));
 			args.addLast(getMethodThreadName(sm));
-
 			String pattern = "(before|after)(Load|Store)";
 			Pattern r = Pattern.compile(pattern);
 			Matcher m = r.matcher(methodNameBefore);
@@ -1127,30 +1126,25 @@ public class Visitor {
 				String type = s.getDefBoxes().get(0).getValue().getType().toString();
 				//System.out.println("type (read): "+type);
 				Value value = ((AssignStmt) s).getLeftOp();
-
 				//for write operations, we have to obtain the right operand
 				if(methodNameBefore.contains("Store")){
 					value = ((AssignStmt) s).getRightOp();
 					type = value.getType().toString();
 					//System.out.println("type (write): "+type);
+					if(type.contains("null")) //do not support null_type
+						return;
 				}
-
 				args.addLast(value); 
 				//System.out.println("value added to args: "+value);			
 
 				SootMethodRef mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(java.lang.Object,int,java.lang.String,java.lang.Object)>").makeRef();
 				String methodNameAfter = methodNameBefore.replace("before", "after");
 				SootMethodRef mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(java.lang.Object,int,java.lang.String,java.lang.Object)>").makeRef();
-
-
-				if(type.equals("int")){
-					mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(java.lang.Object,int,java.lang.String,int)>").makeRef();
-					mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(java.lang.Object,int,java.lang.String,int)>").makeRef();
-				}
-				else if(type.equals("boolean")){
-					mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(java.lang.Object,int,java.lang.String,boolean)>").makeRef();
-					mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(java.lang.Object,int,java.lang.String,boolean)>").makeRef();
-				}
+				
+				//methods for general value types
+				mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(java.lang.Object,int,java.lang.String,"+type+")>").makeRef();
+				mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(java.lang.Object,int,java.lang.String,"+type+")>").makeRef();
+				
 				//System.out.println("BEFORE: "+mrBefore);
 				//System.out.println("AFTER: "+mrAfter+"\n");
 				if(methodNameBefore.contains("Store")){
@@ -1200,20 +1194,20 @@ public class Visitor {
 		Matcher m = r.matcher(methodNameBefore);
 		if (m.find()){
 			String type = s.getDefBoxes().get(0).getValue().getType().toString();
-			System.out.println("STMT: "+s);
-			System.out.println("type (read): "+type);
+			//System.out.println("STMT: "+s);
+			//System.out.println("type (read): "+type);
 			Value value = ((AssignStmt) s).getLeftOp();
 
 			//for write operations, we have to obtain the right operand
 			if(methodNameBefore.contains("Store")){
 				value = ((AssignStmt) s).getRightOp();
 				type = value.getType().toString();
-				System.out.println("type (write): "+type);
+				//System.out.println("type (write): "+type);
 			}
 
 			//Value value = s.getDefBoxes().get(0).getValue();
 			args.addLast((Object)value);
-			System.out.println("value added to args: "+value);
+			//System.out.println("value added to args: "+value);
 			//System.out.println("-------END: Analyzing value from Stmt-------");
 			//SootMethodRef mrBefore = 
 
@@ -1221,18 +1215,10 @@ public class Visitor {
 			String methodNameAfter = methodNameBefore.replace("before", "after");
 			SootMethodRef mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(int,java.lang.String,java.lang.Object)>").makeRef();
 
-			if(type.equals("int")){
-				mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(int,java.lang.String,int)>").makeRef();
-				mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(int,java.lang.String,int)>").makeRef();
-
-			}
-			else if(type.equals("boolean")){
-				mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(int,java.lang.String,boolean)>").makeRef();
-				mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(int,java.lang.String,boolean)>").makeRef();
-			}
-
-			System.out.println("BEFORE: "+mrBefore);
-			System.out.println("AFTER: "+mrAfter+"\n");
+			//methods for general value types
+			mrAfter = Scene.v().getMethod("<" + observerClass + ": void " + methodNameAfter + "(int,java.lang.String,"+type+")>").makeRef();
+			mrBefore = Scene.v().getMethod("<" + observerClass + ": void " + methodNameBefore + "(int,java.lang.String,"+type+")>").makeRef();
+			
 			if(methodNameBefore.contains("Store")){
 				//for stores we only instrument with the value before the write operation
 				units.insertBefore(Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(mrBefore, args)), s); 
