@@ -37,12 +37,13 @@ import edu.ist.symber.common.Pair;
 public class Resolver {
 	private static Z3Connector z3 = new Z3Connector();
 	private static final int THREADS = 1;	//has to be the same as in the benchmark
-	private static final String LOG_DIR = "d:\\record-and-replay\\symber-recorder\\logs";
-	private static final String OUTPUT_DIR = "d:\\record-and-replay\\symber-replayer\\logs";
-	private static final String NAME = "\\log";
-	private static final String EXTENSION = ".json";
-	private static final String SCHEDULE_NAME = "schedule";
-	private static final String SOLUTION_DIR = ".\\z3output"; 
+	private static final String INPUT_DIR = "D:\\record-and-replay\\symber-recorder\\logs";
+	private static final String INPUT_FILE = "\\log";
+	private static final String INPUT_EXT = ".json";
+	private static final String OUTPUT_DIR = "D:\\record-and-replay\\symber-replayer\\logs";
+	private static final String OUTPUT_FILE = "schedule";
+	private static final String OUTPUT_EXT = ".json";
+	private static final String SOLUTION_DIR = ".\\z3"; 
 	private static final String SOLUTION_PATH = "\\z3Solution.txt";
 	private static Map<Integer, ArrayList<Event>> logs = new HashMap<Integer, ArrayList<Event>>();
 	private static Map<Integer, List<Event>> readDomain = new HashMap<Integer, List<Event>>();
@@ -54,7 +55,7 @@ public class Resolver {
 	public static void main(String[] args) {
 		System.out.println("Parsing logs..");
 		for (int i = 0; i <= THREADS; i++) {
-			logs.put(i, parseLogs(LOG_DIR + NAME + i + EXTENSION));
+			logs.put(i, parseLogs(INPUT_DIR + INPUT_FILE + i + INPUT_EXT));
 		}
 		initStructuresForAnalysis();
 		//visualiseReadOrderMemoryConstraints(2);
@@ -108,7 +109,7 @@ public class Resolver {
 		File file = new File(OUTPUT_DIR);
 		file.mkdirs();
 		PrintWriter printWriter = new PrintWriter(OUTPUT_DIR + File.separator
-				+ SCHEDULE_NAME + EXTENSION);
+				+ OUTPUT_FILE + OUTPUT_EXT);
 		JSONArray jsList = new JSONArray();
 		//ArrayList<String> list = new ArrayList<String>();
 		ArrayList<String> jsThreads = new ArrayList<String>();
@@ -238,6 +239,7 @@ public class Resolver {
 	}
 	
 	private static void initStructuresForAnalysis() {
+		System.out.println("asdadsad -> " + writeSetValue);
 		for (Entry<Integer, ArrayList<Event>> entry : logs.entrySet()) {
 			for (int i = 0; i < entry.getValue().size(); i++) {
 				Event event = entry.getValue().get(i);
@@ -316,6 +318,9 @@ public class Resolver {
 				Event read = readops.getValue().get(i);
 				Pair<Integer, Object> key = new Pair<Integer, Object>(
 						read.getFieldId(), read.getValue());
+				
+				System.out.println(writeSetValue);
+				System.out.println("key " + key);
 				if (writeSetValue.containsKey(key)) {
 					if (writeSetValue.get(key).size() == 1) {
 						// exact match
@@ -338,7 +343,9 @@ public class Resolver {
 						z3.post(z3.name(z3.and(constraint.toString()), "RW"+i));
 					}
 				} else {
-					throw new NoMatchFound();
+					//throw new NoMatchFound();
+					System.out.println("NoMatchFound for READ " + key);
+					continue;
 				}
 			}
 		}

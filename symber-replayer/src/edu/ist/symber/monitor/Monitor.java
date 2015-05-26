@@ -30,6 +30,7 @@ public class Monitor {
 	private static String mainthreadname;
 	public static String methodname;
 	public static String[] mainargs;
+	public static final String INPUT_DIR = "D:\\record-and-replay\\symber-replayer\\logs";
 
 	// ** data structures for thread consistent identification
 	public volatile static HashMap<String, Integer> threadChildrenCounter; // **
@@ -198,28 +199,34 @@ public class Monitor {
 	public static void loadLogFile() {
 		ObjectInputStream in = null;
 		try {
-			File traceFile = new File(Parameters.logpath);
-
+			//File traceFile = new File(Parameters.logpath);
+			
+			System.out.println(INPUT_DIR + File.separator + Parameters.logpath);
 			if (Parameters.logpath.endsWith(".gz")) {
 				in = new ObjectInputStream(new GZIPInputStream(
-						new FileInputStream(traceFile)));
+						new FileInputStream(INPUT_DIR + File.separator + Parameters.logpath)));
 				// ** initialize accessVector
 				accessVector = (Vector<ReplayEvent>[]) Util.loadObject(in);
 			} else if (Parameters.logpath.endsWith(".json")) {
-				FileReader reader = new FileReader(traceFile);
+				FileReader reader = new FileReader(INPUT_DIR + File.separator + Parameters.logpath);
 				JSONParser jsonParser = new JSONParser();
 				JSONArray log = (JSONArray) jsonParser.parse(reader);
 				accessVector = new Vector[log.size()];
+				System.out.println("accessVector size " +accessVector.length);
 				// ** initialize accessVector
+				System.out.println("@@@@@@@@@@@");
 				Iterator i = log.iterator();
 				while (i.hasNext()) {
 					JSONObject innerObj = (JSONObject) i.next();
 					Integer fieldId = Integer.valueOf((String) innerObj
 							.get("fieldId"));
 					JSONArray events = (JSONArray) innerObj.get("events");
-					accessVector[fieldId] = new Vector<ReplayEvent>(events.size());
+					//changed : accessVector[fieldId]
+					accessVector[fieldId - 1] = new Vector<ReplayEvent>(events.size());
+					
 					for (int j = 0; j < events.size(); j++) {
-						accessVector[fieldId].add(new ReplayEvent(
+						//changed : accessVector[fieldId]
+						accessVector[fieldId - 1].add(new ReplayEvent(
 								(String) events.get(j)));
 					}
 				}
@@ -238,8 +245,9 @@ public class Monitor {
 					+ Parameters.logpath + ": " + e.getMessage());
 			System.exit(0);
 		} catch (NullPointerException e) {
-			System.err.println("[OREO-Replayer] Null pointer exception for "
-					+ Parameters.logpath + ": " + e.getMessage());
+//			System.err.println("[OREO-Replayer] Null pointer exception for "
+//					+ Parameters.logpath + ": " + e.getMessage());
+			e.printStackTrace();
 			System.exit(0);
 		}
 	}
@@ -900,10 +908,13 @@ public class Monitor {
 	public static void afterMonitorEnter(Object o, int monitorId,
 			String threadId, String monitorName) {
 
+		System.out.println("monitor id a " + monitorId);
+		
 		try {
-			monitorId += Parameters.numShared; // ** update monitor Id to point
+			monitorId += Parameters.numShared -  2; // ** update monitor Id to point
 												// to the correct position in
 												// accessVector data structure
+			System.out.println("monitor id b " + monitorId);
 			ReentrantLock monitorLock = lockVars.get(monitorId);
 			monitorLock.lock();
 			if (!accessVector[monitorId].isEmpty())
