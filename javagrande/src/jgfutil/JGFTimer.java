@@ -21,6 +21,11 @@
 
 package jgfutil;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+
 public class JGFTimer {
 
   public String name; 
@@ -91,6 +96,19 @@ public class JGFTimer {
   }
 
   public void print(){
+	  Writer writer;
+      try {
+			writer = new BufferedWriter(new FileWriter(
+					"original-time.txt", true));
+			writer.append(time + "\t");
+			writer.append("\r\n");
+			writer.close();// */
+			System.out.println("\nEXECUTION TIME: " + time + "s");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
     if (opname.equals("")) {
       System.out.println(name + "   " + time + " (s)");
     }
