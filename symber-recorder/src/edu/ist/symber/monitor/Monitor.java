@@ -120,7 +120,9 @@ public class Monitor {
 	public static void afterLoad(Object objId, int fieldId, String threadId){
 		afterLoad(fieldId, threadId);
 	}
-	public static void afterLoad(Object objId, int fieldId, String threadId, Object value){}
+	public static void afterLoad(Object objId, int fieldId, String threadId, Object value){
+		afterLoad(fieldId, threadId, value);
+	}
 	public static void afterLoad(Object objId, int fieldId, String threadId, boolean value){
 		int v = value ? 1 : 0;
 		afterLoad(fieldId, threadId, (Object) v);
@@ -1069,7 +1071,8 @@ public class Monitor {
 	public static void saveMonitorData(String appname)
 			throws FileNotFoundException {
 		long end;
-
+		//System.out.println("im here -------------------------------------- " + log);
+		
 		String conflitsThreads = "";
 		Integer conflictsRatio = 0;
 		Map<String, HashSet<String>> conflictLog = new HashMap<String, HashSet<String>>();
@@ -1181,15 +1184,31 @@ public class Monitor {
 		try {
 			writer = new BufferedWriter(new FileWriter(
 					"recorder-with-logtime.txt", true));
-			writer.append(time + "\t");
+			writer.append(String.valueOf(time));// + "\t");
 			writer.append("\r\n");
 			writer.close();// */
+			writer = new BufferedWriter(new FileWriter("log-size.txt", true));
+			writer.append(String.valueOf(folderSize(file)));
+			writer.append("\r\n");
+			writer.close();
+			System.out.println("\nLOG SIZE: " + folderSize(file) + " bytes");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("\nRECORDER TIME: " + time + "s");
+		//System.out.println("\nRECORDER TIME: " + time + "s");
 	}
 
+	public static long folderSize(File directory) {
+	    long length = 0;
+	    for (File file : directory.listFiles()) {
+	        if (file.isFile())
+	            length += file.length();
+	        else
+	            length += folderSize(file);
+	    }
+	    return length;
+	}
+	
 	public static void generateTestDriver(String traceFile_) {
 		// GENERATE Test Driver
 		try {
