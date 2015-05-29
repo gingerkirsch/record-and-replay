@@ -213,9 +213,8 @@ public class Monitor {
 				JSONParser jsonParser = new JSONParser();
 				JSONArray log = (JSONArray) jsonParser.parse(reader);
 				accessVector = new Vector[log.size()];
-				System.out.println("accessVector size " +accessVector.length);
+				//System.out.println("accessVector size " +accessVector.length);
 				// ** initialize accessVector
-				System.out.println("@@@@@@@@@@@");
 				Iterator i = log.iterator();
 				while (i.hasNext()) {
 					JSONObject innerObj = (JSONObject) i.next();
@@ -223,11 +222,11 @@ public class Monitor {
 							.get("fieldId"));
 					JSONArray events = (JSONArray) innerObj.get("events");
 					//changed : accessVector[fieldId]
-					accessVector[fieldId - 1] = new Vector<ReplayEvent>(events.size());
+					accessVector[fieldId] = new Vector<ReplayEvent>(events.size());
 					
 					for (int j = 0; j < events.size(); j++) {
 						//changed : accessVector[fieldId]
-						accessVector[fieldId - 1].add(new ReplayEvent(
+						accessVector[fieldId].add(new ReplayEvent(
 								(String) events.get(j)));
 					}
 				}
@@ -246,8 +245,8 @@ public class Monitor {
 					+ Parameters.logpath + ": " + e.getMessage());
 			System.exit(0);
 		} catch (NullPointerException e) {
-//			System.err.println("[OREO-Replayer] Null pointer exception for "
-//					+ Parameters.logpath + ": " + e.getMessage());
+			System.err.println("[OREO-Replayer] Null pointer exception for "
+					+ Parameters.logpath + ": " + e.getMessage());
 			e.printStackTrace();
 			System.exit(0);
 		}
@@ -473,7 +472,7 @@ public class Monitor {
 													// more constraints to go,
 													// it should stop running...
 		{
-			System.err.println("[OREO-Replayer] ERROR: T"
+			System.err.println("[OREO-Replayer MONITOR 475] ERROR: T"
 					+ Thread.currentThread().getName()
 					+ ": access vector of SPE " + fieldId + " is empty!");
 			noMoreConstThreads++;
@@ -654,7 +653,7 @@ public class Monitor {
 													// more constraints, it
 													// should stop running...
 		{
-			System.err.println("[OREO-Replayer] ERROR: T" + threadId
+			System.err.println("[OREO-Replayer MONITOR 656] ERROR: T" + threadId
 					+ ": access vector of SPE " + fieldId + " is empty!");
 			noMoreConstThreads++;
 			while (noMoreConstThreads > 0) {
@@ -813,6 +812,7 @@ public class Monitor {
 																		// the
 																		// shared
 																		// operation
+			///!!!!!!!!!!!!!!!check the index
 			String nextThread = accessVector[monitorId].get(0).getThreadId(); // **
 																				// next
 																				// allowed
@@ -903,7 +903,7 @@ public class Monitor {
 		{
 			System.err.println("[OREO-Replayer] ERROR: T"
 					+ Thread.currentThread().getName()
-					+ ": access vector of SPE " + monitorId + " is empty!");
+					+ ": access vector of SPE MONITOR 906" + monitorId + " is empty!");
 		} catch (Exception e) {
 			System.err.println("[OREO-Replayer] ERROR[T"
 					+ Thread.currentThread().getName() + " -> " + monitorId
@@ -1061,7 +1061,7 @@ public class Monitor {
 				System.err
 						.println("[OREO-Replayer] T"
 								+ Thread.currentThread().getName()
-								+ ": Access vector of SPE "
+								+ ": Access vector of SPE  monitor 100"
 								+ monitorId
 								+ " is empty! But is an access to WAIT, so allow the thread to proceed.");
 				while (true) {
@@ -1077,7 +1077,7 @@ public class Monitor {
 			} else {
 				System.err.println("[OREO-Replayer] ERROR: T"
 						+ Thread.currentThread().getName()
-						+ ": access vector of SPE " + monitorId + " is empty!");
+						+ ": access vector of SPE monitor 1080 " + monitorId + " is empty!");
 			}
 		} catch (Exception e) {
 			System.err
