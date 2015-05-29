@@ -1,13 +1,16 @@
 package edu.ist.symber.resolver;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -61,6 +64,8 @@ public class Resolver {
 		//visualiseReadOrderMemoryConstraints(2);
 		//visualiseWriteOrderMemoryConstraints(2);
 		z3.writeLineZ3("(set-option :produce-unsat-cores true)\n");
+		long startConstraints, endConstraints, startSolve, endSolve;
+		startConstraints = System.nanoTime(); 
 		System.out.println("Create Memory Order Constraints..");
 		createMemoryOrderConstraints();
 		try {
@@ -69,11 +74,29 @@ public class Resolver {
 		} catch (NoMatchFound e) {
 			e.printStackTrace();
 		}
+		endConstraints = System.nanoTime(); //** end timestamp
+		double timeConstraints = (((double)(endConstraints - startConstraints)/1000000000));
 		System.out.println("Finding solution with Z3..");
+		startSolve = System.nanoTime();  
 		z3.solve();
+		endSolve = System.nanoTime(); //** end timestamp
+		double timeSolve = (((double)(endSolve - startSolve)/1000000000));
 		z3.printModel();
 		produceLogForReplayer(SOLUTION_DIR + SOLUTION_PATH);
-
+		Writer writer;
+		try {
+			writer = new BufferedWriter(new FileWriter(
+					"resolver-constraints-time.txt", true));
+			writer.append(String.valueOf(timeConstraints));// + "\t");
+			writer.append("\r\n");
+			writer.close();// */
+			writer = new BufferedWriter(new FileWriter("resolver-solution-time.txt", true));
+			writer.append(String.valueOf(timeSolve));
+			writer.append("\r\n");
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private static void produceLogForReplayer(String file) {
