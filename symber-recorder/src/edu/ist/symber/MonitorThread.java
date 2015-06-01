@@ -17,11 +17,9 @@ public class MonitorThread extends Thread
 	
 	public void run()
 	{
-		
-			try { 
+		try {
 				Monitor.saveMonitorData(appname);
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			if(Monitor.isCrashed)

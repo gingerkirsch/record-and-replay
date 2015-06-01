@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import edu.ist.symber.Parameters;
 import edu.ist.symber.Util;
 import edu.ist.symber.common.Event;
 import edu.ist.symber.common.EventType;
@@ -964,6 +965,17 @@ public class Monitor {
 
 	public static void exitMonitor(Object o, int monitorId, String threadId,
 			String monitorName) {
+		try {
+			String thread = Thread.currentThread().getName();
+			int version = objVersions.get(monitorId);
+			log.get(thread).add(
+					new Event(thread, localCounters.get(thread),
+							EventType.UNLOCK, monitorId, version));
+			localCounters.put(thread, localCounters.get(thread) + 1);
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
 	public static void mainThreadStartRun(String threadId, String methodName,
@@ -1016,6 +1028,10 @@ public class Monitor {
 			threadChildrenCounter.put(threadId, 1);
 			log.put(threadId, new LinkedList<Event>());
 			localCounters.put(threadId, new Integer(0));
+			log.get(threadId).add(
+					new Event(threadId, localCounters.get(threadId),
+							EventType.START));
+			localCounters.put(threadId, localCounters.get(threadId) + 1);
 
 		} catch (Exception e) {
 			System.err.println(">> Monitor_ERROR: " + e.getMessage());
@@ -1024,6 +1040,16 @@ public class Monitor {
 	}
 
 	public static void threadExitRun(String threadId) {
+		try {
+			threadChildrenCounter.put(threadId, threadChildrenCounter.get(threadId) - 1);
+			log.get(threadId).add(
+					new Event(threadId, localCounters.get(threadId),
+							EventType.EXIT));
+			localCounters.put(threadId, localCounters.get(threadId) + 1);
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -1053,6 +1079,10 @@ public class Monitor {
 			t.setName(newThreadName);
 			childCounter++;
 			threadChildrenCounter.put(parentId, childCounter);
+			log.get(parentId).add(
+					new Event(parentId, localCounters.get(parentId), newThreadName,
+							EventType.FORK));
+			localCounters.put(parentId, localCounters.get(parentId) + 1);
 		} catch (Exception e) {
 			System.err.println(">> Monitor_ERROR: " + e.getMessage());
 			e.printStackTrace();
@@ -1060,7 +1090,22 @@ public class Monitor {
 	}
 
 	public synchronized static void joinRunThreadAfter(Thread t, String threadId) {
-
+		try {
+			if(threadId.contains("main")) 
+				threadId = "0";
+			int childCounter = threadChildrenCounter.get(threadId);
+			String childName = t.getName();
+			childCounter--;
+			threadChildrenCounter.put(threadId, childCounter);
+			log.get(threadId).add(
+					new Event(threadId, localCounters.get(threadId), childName,
+							EventType.JOIN));
+			localCounters.put(threadId, localCounters.get(threadId) + 1);
+			
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
 	public synchronized static void crashed(Throwable crashedException) {
@@ -1071,16 +1116,15 @@ public class Monitor {
 	public static void saveMonitorData(String appname)
 			throws FileNotFoundException {
 		long end;
-		//System.out.println("im here -------------------------------------- " + log);
 		
 		String conflitsThreads = "";
 		Integer conflictsRatio = 0;
 		Map<String, HashSet<String>> conflictLog = new HashMap<String, HashSet<String>>();
-
 		for (Entry<String, LinkedList<Event>> entry : log.entrySet()) {
 			String key = entry.getKey();
 			File file = new File(LOGS_DIRECTORY);
 			file.mkdirs();
+			System.out.println(file);
 			PrintWriter printWriter = new PrintWriter(LOGS_DIRECTORY
 					+ File.separator + LOG_FILE_NAME + key
 					+ FILE_EXTENSION_JSON);
@@ -1096,13 +1140,15 @@ public class Monitor {
 				jsObj.put("eventType",
 						String.valueOf(event.getEventType().toString()));
 				jsObj.put("version", String.valueOf(event.getVersion()));
-				jsObj.put("subversion", String.valueOf(event.getSubversion()));
-				if (event.getEventType().equals(EventType.LOCK)) {
+				if (event.getEventType().equals(EventType.START) || event.getEventType().equals(EventType.EXIT)) {
+					continue;
+				} else if (event.getEventType().equals(EventType.LOCK) || event.getEventType().equals(EventType.UNLOCK)) {
 					jsObj.put("monitorId", String.valueOf(event.getFieldId()));
+				} else if (event.getEventType().equals(EventType.FORK) || event.getEventType().equals(EventType.JOIN)) {
+					jsObj.put("value", String.valueOf(event.getValue()));
 				} else {
 					jsObj.put("fieldId", String.valueOf(event.getFieldId()));
 					jsObj.put("value", String.valueOf(event.getValue()));
-
 				}
 				// System.out.println(jsObj);
 				jsList.add(jsObj);
@@ -1146,7 +1192,7 @@ public class Monitor {
 		StringBuilder sb = new StringBuilder();
 		file.mkdirs();
 		PrintWriter printWriter = new PrintWriter(LOGS_DIRECTORY
-				+ File.separator + CONFLICT_LOG_FILE_NAME + FILE_EXTENSION_TXT);
+				+ File.separator + CONFLICT_LOG_FILE_NAME + FILE_EXTENSION_JSON);
 		for (Entry<String, HashSet<String>> entry : conflictLog.entrySet()) {
 			HashSet<String> value = entry.getValue();
 			if (value.size() > 1) {
