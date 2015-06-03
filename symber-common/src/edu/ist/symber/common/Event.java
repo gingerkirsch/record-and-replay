@@ -8,36 +8,43 @@ public class Event {
 	private int eventId; // counter of operations within current thread (partial order)
 	private int fieldId; // variable id
 	private int version; // version
-	private int subversion; // subversion - we might need it for resolver
 	private Object value; // value
 
 	public Event(String threadId, int eventId, EventType eventType, int fieldId, int version, Object value) {
+		// READ, WRITE
 		super();
 		this.setThreadId(threadId);
 		this.eventId = eventId;
 		this.eventType = eventType;
 		this.fieldId = fieldId;
 		this.version = version;
-		this.subversion = 0;
 		this.value = value;
 	}
 	
-	public Event(String threadId, int eventId, EventType eventType, int fieldId, int version) {
+	public Event(String threadId, int eventId, EventType eventType, int fieldId) {
+		// LOCK, UNLOCK
 		super();
 		this.setThreadId(threadId);
 		this.eventId = eventId;
 		this.eventType = eventType;
 		this.fieldId = fieldId;
-		this.version = version;
-		this.subversion = 0;
 	}
 	
 	public Event(String threadId, int eventId, EventType eventType) {
+		// START, EXIT
 		super();
 		this.setThreadId(threadId);
 		this.eventId = eventId;
 		this.eventType = eventType;
-		this.subversion = 0;
+	}
+	
+	public Event(String threadId, int eventId, String value, EventType eventType) {
+		// FORK, JOIN
+		super();
+		this.setThreadId(threadId);
+		this.eventId = eventId;
+		this.value = value;
+		this.eventType = eventType;
 	}
 	
 	public int getEventId(){
@@ -64,14 +71,6 @@ public class Event {
 		this.version = version;
 	}
 
-	public int getSubversion() {
-		return subversion;
-	}
-
-	public void setSubversion(int subversion) {
-		this.subversion = subversion;
-	}
-	
 	public Object getValue() {
 		return value;
 	}
@@ -94,22 +93,45 @@ public class Event {
 		switch (this.getEventType()){
 			case READ: result.append("R-"); 
 				result.append("field_"+this.fieldId+"-");
-				result.append("v"+this.version+"."+this.subversion+"-");
-				result.append("th"+this.threadId+"."+this.eventId+"@");
+				result.append("v"+this.version+"-");
+				result.append("T"+this.threadId+"_"+this.eventId+"@");
 				result.append(this.value);
 				break;
 			case WRITE: result.append("W-"); 
 				result.append("field_"+this.fieldId+"-");
-				result.append("v"+this.version+"."+this.subversion+"-");
-				result.append("th"+this.threadId+"."+this.eventId+"@");
+				result.append("v"+this.version+"-");
+				result.append("T"+this.threadId+"_"+this.eventId+"@");
 				result.append(this.value);
 				break;
 			case LOCK: 
 				result.append("L-"); 
 				result.append("monitor_"+this.fieldId+"-");
-				result.append("v"+this.version+"."+this.subversion+"-");
-				result.append("th"+this.threadId+"."+this.eventId+"@");
+				result.append("v"+this.version+"-");
+				result.append("T"+this.threadId+"_"+this.eventId);
 				break;
+			case UNLOCK: 
+				result.append("U-"); 
+				result.append("monitor_"+this.fieldId+"-");
+				result.append("v"+this.version+"-");
+				result.append("T"+this.threadId+"_"+this.eventId);
+				break;
+			case START: 
+				result.append("-START-"); 
+				result.append("T"+this.threadId+"_"+this.eventId);
+				break;
+			case EXIT: 
+				result.append("-EXIT-"); 
+				result.append("T"+this.threadId+"_"+this.eventId);
+				break;
+			case FORK: 
+				result.append("-FORK-"); 
+				result.append("T"+this.value+"-T"+this.threadId+"_"+this.eventId);
+				break;
+			case JOIN: 
+				result.append("-JOIN-"); 
+				result.append("T"+this.value+"-T"+this.threadId+"_"+this.eventId);
+				break;
+				
 		}
 		return result.toString();
 	}
