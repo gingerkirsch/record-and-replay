@@ -8,5 +8,7 @@ public class Parameters {
 	public static String TMP_DIR = "src";
 	public static int lockCount = 0;
 	public static String MAIN_THREAD_NAME = "main";
+	public static int numShared = 0;
+	public static int numSync = 0;
 
 }

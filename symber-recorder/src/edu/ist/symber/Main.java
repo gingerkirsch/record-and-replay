@@ -25,12 +25,28 @@ public class Main {
 		int len = arg.size();
 		if(len==0)
 		{
-			System.err.println("please specify: <main class> <parameters>... ");
+			System.err.println("please specify: <main class> <parameters> --num-shared=<> --num-sync=<>... ");
 		}
 		else 
 		{
+			
+			for(int i = 0; i < args.length; i++){
+				if(args[i].contains("-stride")){ //look for stride mode
+					System.out.println(">> STRIDE MODE: ON");
+					Monitor.STRIDEMODE = true;
+				}
+				else if(args[i].contains("--num-shared")){
+					String numSh = args[i].substring(args[i].indexOf("=")+1);
+					Parameters.numShared = Integer.valueOf(numSh);					
+				}
+				else if(args[i].contains("--num-sync")){
+					String numSy = args[i].substring(args[i].indexOf("=")+1);
+					Parameters.numSync = Integer.valueOf(numSy);					
+				}
+			}
 			process(arg);
 		}
+	
 		end = System.nanoTime(); //** end timestamp
 		double time = (((double)(end - start)/1000000000));
 		System.out.println("Time of recorder with logging time excluded:" +time);
