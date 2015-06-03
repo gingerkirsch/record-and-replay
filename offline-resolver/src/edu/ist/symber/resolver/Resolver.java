@@ -40,18 +40,26 @@ import edu.ist.symber.common.Pair;
 public class Resolver {
 	private static Z3Connector z3 = new Z3Connector();
 	private static final int THREADS = 1;	//has to be the same as in the benchmark
+	//	private static final String INPUT_DIR = "c:\\Users\\ASUS\\Desktop\\jars\\logs\\";//
 	private static final String INPUT_DIR = "D:\\record-and-replay\\symber-recorder\\logs";
 	private static final String INPUT_FILE = "\\log";
 	private static final String INPUT_EXT = ".json";
+	//private static final String OUTPUT_DIR = "output";//
 	private static final String OUTPUT_DIR = "D:\\record-and-replay\\symber-replayer\\logs";
 	private static final String OUTPUT_FILE = "schedule";
 	private static final String OUTPUT_EXT = ".json";
-	private static final String SOLUTION_DIR = ".\\z3"; 
+	private static final String SOLUTION_DIR = "z3"; 
 	private static final String SOLUTION_PATH = "\\z3Solution.txt";
 	private static Map<Integer, ArrayList<Event>> logs = new HashMap<Integer, ArrayList<Event>>();
 	private static Map<Integer, List<Event>> readDomain = new HashMap<Integer, List<Event>>();
 	private static Map<Integer, List<Event>> writeDomain = new HashMap<Integer, List<Event>>();
 	private static Map<Integer, List<Event>> lockDomain = new HashMap<Integer, List<Event>>();
+	private static Map<Integer, List<Event>> unlockDomain = new HashMap<Integer, List<Event>>();
+	private static Map<Integer, List<Event>> startDomain = new HashMap<Integer, List<Event>>();
+	private static Map<Integer, List<Event>> exitDomain = new HashMap<Integer, List<Event>>();
+	private static Map<Integer, List<Event>> forkDomain = new HashMap<Integer, List<Event>>();
+	private static Map<Integer, List<Event>> joinDomain = new HashMap<Integer, List<Event>>();
+	
 	private static Map<Pair<Integer, Object>, List<Event>> writeSetValue = new HashMap<Pair<Integer, Object>, List<Event>>();
 	
 
@@ -61,6 +69,8 @@ public class Resolver {
 			logs.put(i, parseLogs(INPUT_DIR + INPUT_FILE + i + INPUT_EXT));
 		}
 		initStructuresForAnalysis();
+		//visualiseForkJoinMemoryConstraints(0);
+		//visualiseForkJoinMemoryConstraints(1);
 		//visualiseReadOrderMemoryConstraints(2);
 		//visualiseWriteOrderMemoryConstraints(2);
 		z3.writeLineZ3("(set-option :produce-unsat-cores true)\n");
@@ -74,22 +84,29 @@ public class Resolver {
 		} catch (NoMatchFound e) {
 			e.printStackTrace();
 		}
+		System.out.println("Create Thread Constraints..");
+		createThreadConstraints();
 		endConstraints = System.nanoTime(); //** end timestamp
 		double timeConstraints = (((double)(endConstraints - startConstraints)/1000000000));
-		System.out.println("Finding solution with Z3..");
+		System.out.println("Finding solution with Z3..................................");
 		startSolve = System.nanoTime();  
 		z3.solve();
 		endSolve = System.nanoTime(); //** end timestamp
 		double timeSolve = (((double)(endSolve - startSolve)/1000000000));
 		z3.printModel();
+		File folder = new File(SOLUTION_DIR);
+		boolean fold = folder.mkdirs();
+
+		System.out.println("----------> " + SOLUTION_DIR + SOLUTION_PATH);
 		produceLogForReplayer(SOLUTION_DIR + SOLUTION_PATH);
+
 		Writer writer;
 		try {
 			writer = new BufferedWriter(new FileWriter(
 					"resolver-constraints-time.txt", true));
 			writer.append(String.valueOf(timeConstraints));// + "\t");
 			writer.append("\r\n");
-			writer.close();// */
+			writer.close();// 
 			writer = new BufferedWriter(new FileWriter("resolver-solution-time.txt", true));
 			writer.append(String.valueOf(timeSolve));
 			writer.append("\r\n");
@@ -176,9 +193,10 @@ public class Resolver {
 		} finally {
 			scanner.close();
 		}
-		final Pattern pattern = Pattern
-				.compile("(\\(define-fun\\sO(R|W|L)-field_[0-9]+-v[0-9]+.[0-9]+-th[0-9]+.[0-9]+@.+\\n\\s+[0-9]+\\))");
-		final Matcher m = pattern.matcher(sb.toString());
+		final Pattern rwlu = Pattern.compile("(\\(define-fun\\sO(R|W|L|U)-field_[0-9]+-v[0-9]+-T[0-9]+_[0-9]+@.+\\n\\s+[0-9]+\\))");
+		//final Pattern se = Pattern.compile("(\\(define-fun\\sO-(START|EXIT)+-T[0-9]+_[0-9]+\\))");
+		//final Pattern fj = Pattern.compile("(\\(define-fun\\sO-(FORK|JOIN)+-T[0-9]+-T[0-9]+_[0-9]+\\))");
+		final Matcher m = rwlu.matcher(sb.toString());
 		while (m.find()) {
 			Pair<Integer, Pair<String, String>> pair = parseDefineFunEntry(m.group());
 			result.put(pair.getFirst(), pair.getSecond());
@@ -191,7 +209,7 @@ public class Resolver {
 	private static Pair<Integer, Pair<String, String>> parseDefineFunEntry(String source) {
 		final Pattern position = Pattern.compile("\\s+[0-9]+");
 		final Pattern field = Pattern.compile("field_[0-9]+");
-		final Pattern thread = Pattern.compile("-th[0-9]+");
+		final Pattern thread = Pattern.compile("-T[0-9]+");
 		final Matcher pm = position.matcher(source);
 		final Matcher fm = field.matcher(source);
 		final Matcher tm = thread.matcher(source);
@@ -206,7 +224,7 @@ public class Resolver {
 			//System.out.println(positionInt);
 			String fieldId = fieldString.substring(6);
 			//System.out.println(fieldId);
-			String threadId = threadString.substring(3);
+			String threadId = threadString.substring(2);
 			//System.out.println(threadId);
 			return new Pair<Integer, Pair<String,String>>(positionInt, new Pair(fieldId, threadId));
 		} catch (Exception e) {
@@ -232,21 +250,25 @@ public class Resolver {
 						.toString());
 				EventType eventType = EventType.valueOf(String
 						.valueOf((String) innerObj.get("eventType")));
-				int version = Integer.valueOf(innerObj.get("version")
-						.toString());
-				int subversion = Integer.valueOf(innerObj.get("subversion")
-						.toString());
-				if (eventType.equals(EventType.LOCK)) {
-					int monitorId = Integer.valueOf(innerObj.get("monitorId")
-							.toString());
-					log.add(new Event(threadId, eventId, eventType, monitorId,
-							version));
+				if (!(eventType.equals(EventType.START)
+						|| eventType.equals(EventType.EXIT))) {
+					if (eventType.equals(EventType.LOCK)
+							|| eventType.equals(EventType.UNLOCK)) {
+						int monitorId = Integer.valueOf(innerObj.get("monitorId")
+								.toString());
+						log.add(new Event(threadId, eventId, eventType, monitorId));
+					} else if (eventType.equals(EventType.FORK)
+							|| eventType.equals(EventType.JOIN)) {
+						String value = (String) innerObj.get("value");
+						log.add(new Event(threadId, eventId, value, eventType));
+					} else {
+						int version = Integer.valueOf(innerObj.get("version").toString());
+						int fieldId = Integer.valueOf(innerObj.get("fieldId").toString());
+						Object value = innerObj.get("value");
+						log.add(new Event(threadId, eventId, eventType, fieldId, version, value));
+					}
 				} else {
-					int fieldId = Integer.valueOf(innerObj.get("fieldId")
-							.toString());
-					Object value = innerObj.get("value");
-					log.add(new Event(threadId, eventId, eventType, fieldId,
-							version, value));
+					log.add(new Event(threadId, eventId, eventType));
 				}
 			}
 		} catch (FileNotFoundException ex) {
@@ -262,7 +284,6 @@ public class Resolver {
 	}
 	
 	private static void initStructuresForAnalysis() {
-		System.out.println("asdadsad -> " + writeSetValue);
 		for (Entry<Integer, ArrayList<Event>> entry : logs.entrySet()) {
 			for (int i = 0; i < entry.getValue().size(); i++) {
 				Event event = entry.getValue().get(i);
@@ -304,8 +325,104 @@ public class Resolver {
 						lockDomain.get(event.getFieldId()).add(event);
 					}
 					break;
+				case UNLOCK:
+					if (!unlockDomain.containsKey(event.getFieldId())) {
+						ArrayList<Event> events = new ArrayList<Event>();
+						events.add(event);
+						unlockDomain.put(event.getFieldId(), events);
+					} else {
+						unlockDomain.get(event.getFieldId()).add(event);
+					}
+					break;
+				case START:
+					System.out.println(event);
+					if (!startDomain.containsKey(event.getFieldId())) {
+						ArrayList<Event> events = new ArrayList<Event>();
+						events.add(event);
+						startDomain.put(event.getFieldId(), events);
+					} else {
+						startDomain.get(event.getFieldId()).add(event);
+					}
+					break;
+				case EXIT:
+					System.out.println(event);
+					if (!exitDomain.containsKey(event.getFieldId())) {
+						ArrayList<Event> events = new ArrayList<Event>();
+						events.add(event);
+						exitDomain.put(event.getFieldId(), events);
+					} else {
+						exitDomain.get(event.getFieldId()).add(event);
+					}
+					break;
+				case FORK:
+					if (!forkDomain.containsKey(event.getFieldId())) {
+						ArrayList<Event> events = new ArrayList<Event>();
+						events.add(event);
+						forkDomain.put(event.getFieldId(), events);
+					} else {
+						forkDomain.get(event.getFieldId()).add(event);
+					}
+					break;
+				case JOIN:
+					if (!joinDomain.containsKey(event.getFieldId())) {
+						ArrayList<Event> events = new ArrayList<Event>();
+						events.add(event);
+						joinDomain.put(event.getFieldId(), events);
+					} else {
+						joinDomain.get(event.getFieldId()).add(event);
+					}
+					break;
 				default:
 					throw new IllegalArgumentException();
+				}
+			}
+		}
+	}
+	
+	private static void visualiseForkJoinMemoryConstraints(Integer threadId){
+		for (Entry<Integer, List<Event>> starts : startDomain.entrySet()) {
+			for (int i = 0; i < starts.getValue().size(); i++) {
+				Event start = starts.getValue().get(i);
+				for (Entry<Integer, List<Event>> exits : exitDomain.entrySet()) {
+					for (int j = 0; j < exits.getValue().size(); j++) {
+						Event exit = exits.getValue().get(j);
+						if (start.getThreadId().equals(exit.getThreadId())){
+							//z3.post(z3.lt(start.getOrderConstraintName(), exit.getOrderConstraintName()));
+							System.out.println(start.getOrderConstraintName() + " < " + exit.getOrderConstraintName());
+						}
+					}
+				}
+			}
+		}
+		for (Entry<Integer, List<Event>> forks : forkDomain.entrySet()) {
+			for (int i = 0; i < forks.getValue().size(); i++) {
+				Event fork = forks.getValue().get(i);
+				for (Entry<Integer, List<Event>> joins : joinDomain.entrySet()) {
+					for (int j = 0; j < joins.getValue().size(); j++) {
+						Event join = joins.getValue().get(j);
+						if (fork.getThreadId().equals(join.getThreadId()) && fork.getValue().equals(join.getValue())){
+							//z3.post(z3.lt(fork.getOrderConstraintName(), join.getOrderConstraintName()));
+							System.out.println(fork.getOrderConstraintName() + " < " + join.getOrderConstraintName());
+						}
+					}
+				}
+			}
+		}
+		for (Entry<Integer, List<Event>> entry : joinDomain.entrySet()){
+			for (int i = 0; i < entry.getValue().size(); i++){
+				if (entry.getValue().get(i).getThreadId().equals(threadId.toString())){
+					Event join = entry.getValue().get(i);
+					//System.out.println(join);
+					for (Entry<Integer, List<Event>> exits : exitDomain.entrySet()){
+						for (int j = 0; j < exits.getValue().size(); j++){
+							if (join.getValue().toString().equals(exits.getValue().get(j).getThreadId())){
+								Event exit = exits.getValue().get(j);
+								System.out.println(exit.getOrderConstraintName() + " < " + join.getOrderConstraintName());
+								
+							}
+						}
+					}
+					
 				}
 			}
 		}
@@ -333,6 +450,61 @@ public class Resolver {
 		}
 	}
 	
+	private static void createThreadConstraints() {
+		z3.writeLineZ3("(echo \"THREAD CONSTRAINTS -----\")\n");
+
+		for (Entry<Integer, List<Event>> starts : startDomain.entrySet()) {
+			for (int i = 0; i < starts.getValue().size(); i++) {
+				Event start = starts.getValue().get(i);
+				for (Entry<Integer, List<Event>> exits : exitDomain.entrySet()) {
+					for (int j = 0; j < exits.getValue().size(); j++) {
+						Event exit = exits.getValue().get(j);
+						if (start.getThreadId().equals(exit.getThreadId())){
+							z3.post(z3.lt(start.getOrderConstraintName(), exit.getOrderConstraintName()));
+							//System.out.println(start.getOrderConstraintName() + " < " + exit.getOrderConstraintName());
+						}
+					}
+				}
+			}
+		}
+		
+		for (Entry<Integer, List<Event>> forks : forkDomain.entrySet()) {
+			for (int i = 0; i < forks.getValue().size(); i++) {
+				Event fork = forks.getValue().get(i);
+				for (Entry<Integer, List<Event>> joins : joinDomain.entrySet()) {
+					for (int j = 0; j < joins.getValue().size(); j++) {
+						Event join = joins.getValue().get(j);
+						if (fork.getThreadId().equals(join.getThreadId()) && fork.getValue().equals(join.getValue())){
+							z3.post(z3.lt(fork.getOrderConstraintName(), join.getOrderConstraintName()));
+							//System.out.println(fork.getOrderConstraintName() + " < " + join.getOrderConstraintName());
+						}
+					}
+				}
+			}
+		}
+		
+		for (Entry<Integer, List<Event>> joins : joinDomain.entrySet()) {
+			for (int i = 0; i < joins.getValue().size(); i++) {
+				Event join = joins.getValue().get(i);
+				// System.out.println(join);
+				for (Entry<Integer, List<Event>> exits : exitDomain.entrySet()) {
+					for (int j = 0; j < exits.getValue().size(); j++) {
+						if (join.getValue().toString()
+								.equals(exits.getValue().get(j).getThreadId())) {
+							Event exit = exits.getValue().get(j);
+							/*System.out.println(exit.getOrderConstraintName()
+									+ " < " + join.getOrderConstraintName());*/
+							z3.post(z3.lt(exit.getOrderConstraintName(), join.getOrderConstraintName()));
+
+						}
+
+					}
+
+				}
+			}
+		}
+	}
+	
 	private static void createrReadWriteConstraints() throws NoMatchFound {
 		z3.writeLineZ3("(echo \"READ-WRITE CONSTRAINTS -----\")\n");
 
@@ -341,9 +513,6 @@ public class Resolver {
 				Event read = readops.getValue().get(i);
 				Pair<Integer, Object> key = new Pair<Integer, Object>(
 						read.getFieldId(), read.getValue());
-				
-				System.out.println(writeSetValue);
-				System.out.println("key " + key);
 				if (writeSetValue.containsKey(key)) {
 					if (writeSetValue.get(key).size() == 1) {
 						// exact match
