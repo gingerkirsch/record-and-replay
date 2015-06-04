@@ -40,11 +40,11 @@ import edu.ist.symber.common.Pair;
 public class Resolver {
 	private static Z3Connector z3 = new Z3Connector();
 	private static final int THREADS = 1;	//has to be the same as in the benchmark
-	//	private static final String INPUT_DIR = "c:\\Users\\ASUS\\Desktop\\jars\\logs\\";//
+	//private static final String INPUT_DIR = "c:\\Users\\ASUS\\Desktop\\jars\\logs\\";
 	private static final String INPUT_DIR = "D:\\record-and-replay\\symber-recorder\\logs";
 	private static final String INPUT_FILE = "\\log";
 	private static final String INPUT_EXT = ".json";
-	//private static final String OUTPUT_DIR = "output";//
+	//private static final String OUTPUT_DIR = "output";
 	private static final String OUTPUT_DIR = "D:\\record-and-replay\\symber-replayer\\logs";
 	private static final String OUTPUT_FILE = "schedule";
 	private static final String OUTPUT_EXT = ".json";
@@ -69,10 +69,9 @@ public class Resolver {
 			logs.put(i, parseLogs(INPUT_DIR + INPUT_FILE + i + INPUT_EXT));
 		}
 		initStructuresForAnalysis();
-		//visualiseForkJoinMemoryConstraints(0);
 		//visualiseForkJoinMemoryConstraints(1);
-		//visualiseReadOrderMemoryConstraints(2);
-		//visualiseWriteOrderMemoryConstraints(2);
+		//visualiseReadOrderMemoryConstraints(1);
+		//visualiseWriteOrderMemoryConstraints(1);
 		z3.writeLineZ3("(set-option :produce-unsat-cores true)\n");
 		long startConstraints, endConstraints, startSolve, endSolve;
 		startConstraints = System.nanoTime(); 
@@ -88,27 +87,26 @@ public class Resolver {
 		createThreadConstraints();
 		endConstraints = System.nanoTime(); //** end timestamp
 		double timeConstraints = (((double)(endConstraints - startConstraints)/1000000000));
-		System.out.println("Finding solution with Z3..................................");
+		System.out.println("Finding solution with Z3....");
 		startSolve = System.nanoTime();  
 		z3.solve();
+		System.out.println("Solution found");
 		endSolve = System.nanoTime(); //** end timestamp
 		double timeSolve = (((double)(endSolve - startSolve)/1000000000));
 		z3.printModel();
 		File folder = new File(SOLUTION_DIR);
 		boolean fold = folder.mkdirs();
-
-		System.out.println("----------> " + SOLUTION_DIR + SOLUTION_PATH);
-		produceLogForReplayer(SOLUTION_DIR + SOLUTION_PATH);
-
 		Writer writer;
 		try {
 			writer = new BufferedWriter(new FileWriter(
 					"resolver-constraints-time.txt", true));
 			writer.append(String.valueOf(timeConstraints));// + "\t");
 			writer.append("\r\n");
+			System.out.println("BUILDING CONSTRAINTS TIME: "+timeConstraints+"s");
 			writer.close();// 
 			writer = new BufferedWriter(new FileWriter("resolver-solution-time.txt", true));
 			writer.append(String.valueOf(timeSolve));
+			System.out.println("SOLVING TIME: "+timeSolve+"s");
 			writer.append("\r\n");
 			writer.close();
 		} catch (IOException e) {
@@ -193,39 +191,57 @@ public class Resolver {
 		} finally {
 			scanner.close();
 		}
-		final Pattern rwlu = Pattern.compile("(\\(define-fun\\sO(R|W|L|U)-field_[0-9]+-v[0-9]+-T[0-9]+_[0-9]+@.+\\n\\s+[0-9]+\\))");
+		final Pattern rw = Pattern.compile("(\\(define-fun\\sO(R|W)-field_[0-9]+-v[0-9]+-T[0-9]+_[0-9]+@.+\\n\\s+[0-9]+\\))");
+		final Pattern lu = Pattern.compile("(\\(define-fun\\sO(L|U)-monitor_[0-9]+-v[0-9]+-T[0-9]+_[0-9]+.+\\n\\s+[0-9]+\\))");
 		//final Pattern se = Pattern.compile("(\\(define-fun\\sO-(START|EXIT)+-T[0-9]+_[0-9]+\\))");
 		//final Pattern fj = Pattern.compile("(\\(define-fun\\sO-(FORK|JOIN)+-T[0-9]+-T[0-9]+_[0-9]+\\))");
-		final Matcher m = rwlu.matcher(sb.toString());
-		while (m.find()) {
-			Pair<Integer, Pair<String, String>> pair = parseDefineFunEntry(m.group());
+		final Matcher m1 = rw.matcher(sb.toString());
+		final Matcher m2 = lu.matcher(sb.toString());
+		while (m1.find()) {
+			Pair<Integer, Pair<String, String>> pair = parseDefineFunEntry(m1.group());
 			result.put(pair.getFirst(), pair.getSecond());
-			
 		}
-
+		/*while (m2.find()){
+			Pair<Integer, Pair<String, String>> pair = parseDefineFunEntry(m2.group());
+			result.put(pair.getFirst(), pair.getSecond());
+		}*/
 		return result;
 	}
 
 	private static Pair<Integer, Pair<String, String>> parseDefineFunEntry(String source) {
 		final Pattern position = Pattern.compile("\\s+[0-9]+");
 		final Pattern field = Pattern.compile("field_[0-9]+");
+		final Pattern monitor = Pattern.compile("monitor_[0-9]+");
 		final Pattern thread = Pattern.compile("-T[0-9]+");
 		final Matcher pm = position.matcher(source);
 		final Matcher fm = field.matcher(source);
+		final Matcher mm = monitor.matcher(source);
 		final Matcher tm = thread.matcher(source);
 		String positionString = "";
 		String fieldString = "";
+		String monitorString = "";
 		String threadString = "";
+		boolean isLock = false;
 		if (pm.find()) positionString = pm.group();
-		if (fm.find()) fieldString = fm.group();
+		if (fm.find()){
+			fieldString = fm.group();
+			isLock = false;
+		} else if (mm.find()) {
+			monitorString = mm.group();
+			isLock = true;
+		}
 		if (tm.find()) threadString = tm.group();
 		try {
 			Integer positionInt = Integer.valueOf(positionString.trim().substring(0));
 			//System.out.println(positionInt);
-			String fieldId = fieldString.substring(6);
-			//System.out.println(fieldId);
 			String threadId = threadString.substring(2);
 			//System.out.println(threadId);
+			if (isLock){
+				String monitorId = monitorString.substring(8);
+				return new Pair<Integer, Pair<String,String>>(positionInt, new Pair(monitorId, threadId));
+			}
+			String fieldId = fieldString.substring(6);
+			//System.out.println(fieldId);
 			return new Pair<Integer, Pair<String,String>>(positionInt, new Pair(fieldId, threadId));
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -335,7 +351,6 @@ public class Resolver {
 					}
 					break;
 				case START:
-					System.out.println(event);
 					if (!startDomain.containsKey(event.getFieldId())) {
 						ArrayList<Event> events = new ArrayList<Event>();
 						events.add(event);
@@ -345,7 +360,6 @@ public class Resolver {
 					}
 					break;
 				case EXIT:
-					System.out.println(event);
 					if (!exitDomain.containsKey(event.getFieldId())) {
 						ArrayList<Event> events = new ArrayList<Event>();
 						events.add(event);
