@@ -56,11 +56,15 @@ public class ArgParserReplayer {
 	public void parse(String[] args) {
 		int idx = 0;
 
-		if(args.length == 0)
-		{
-			throw new IllegalArgumentException("[OREO-Replayer] No parameters introduced. Please indicate the program's main class and the log file as follows: "+Option.MAIN_CLASS+" [main-class-name] [params]  "+Option.LOG_PATH+" [path-to-recorded-log]");
-		}
-
+		if (args.length == 0) {
+			throw new IllegalArgumentException(
+					"[OREO-Replayer] No parameters introduced. Please indicate the program's main class and the log file as follows: "
+							+ Option.MAIN_CLASS
+							+ " [main-class-name] [params]  "
+							+ Option.LOG_PATH
+							+ " [path-to-recorded-log]");
+		} 
+		
 		boolean isMain = false; //** used to parse main class' parameters
 		Option mainOpt = null; 	//** used to parse main class' parameters
 		while (idx < args.length) {

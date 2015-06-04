@@ -31,6 +31,7 @@ public class Monitor {
 	private static String mainthreadname;
 	public static String methodname;
 	public static String[] mainargs;
+	//public static final String INPUT_DIR = "c:\\Users\\ASUS\\Desktop\\jars\\logs\\output";
 	public static final String INPUT_DIR = "D:\\record-and-replay\\symber-replayer\\logs";
 
 	// ** data structures for thread consistent identification
@@ -1099,14 +1100,11 @@ public class Monitor {
 	 */
 	public static void afterMonitorEnter(Object o, int monitorId,
 			String threadId, String monitorName) {
-
-		System.out.println("monitor id a " + monitorId);
 		
 		try {
-			monitorId += Parameters.numShared -  2; // ** update monitor Id to point
+			monitorId += Parameters.numShared - 2; // ** update monitor Id to point
 												// to the correct position in
 												// accessVector data structure
-			System.out.println("monitor id b " + monitorId);
 			ReentrantLock monitorLock = lockVars.get(monitorId);
 			monitorLock.lock();
 			if (!accessVector[monitorId].isEmpty())
