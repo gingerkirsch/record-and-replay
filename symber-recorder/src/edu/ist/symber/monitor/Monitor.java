@@ -1084,6 +1084,9 @@ public class Monitor {
 	 */
 	public static void beforeMonitorEnter(Object o, int monitorId,
 			String threadId, String monitorName) {
+		if(threadId.contains("main")){
+			threadId = "0";
+		}
 	}
 
 	/**
@@ -1096,24 +1099,29 @@ public class Monitor {
     public static void afterMonitorEnter(Object o, int monitorId,
                     String threadId, String monitorName) {
 
-            monitorId += Parameters.numShared;
-            int version = 0;
-            try{
-                    version = objVersions.get(monitorId);
-                    version++;
-                    objVersions.put(monitorId, version);
-            }
-            catch(NullPointerException e){
-                    objVersions.put(monitorId, version);
-            }
-            try {
-                    String thread = Thread.currentThread().getName();
-                    log.get(thread).add(new Event(thread, localCounters.get(thread), EventType.LOCK, monitorId));
-                    localCounters.put(thread, localCounters.get(thread) + 1);
-            } catch (Exception e) {
-                    System.err.println(">> Monitor_ERROR: " + e.getMessage());
-                    e.printStackTrace();
-            }
+		if (threadId.contains("main")) {
+			threadId = "0";
+		}
+
+		monitorId += Parameters.numShared;
+		int version = 0;
+		try {
+			version = objVersions.get(monitorId);
+			version++;
+			objVersions.put(monitorId, version);
+		} catch (NullPointerException e) {
+			objVersions.put(monitorId, version);
+		}
+		try {
+			String thread = Thread.currentThread().getName();
+			log.get(thread).add(
+					new Event(thread, localCounters.get(thread),
+							EventType.LOCK, monitorId));
+			localCounters.put(thread, localCounters.get(thread) + 1);
+		} catch (Exception e) {
+			System.err.println(">> Monitor_ERROR: " + e.getMessage());
+			e.printStackTrace();
+		}
     }
 
 	public static void exitMonitor(Object o, int monitorId, String threadId,
@@ -1281,7 +1289,6 @@ public class Monitor {
 			String key = entry.getKey();
 			File file = new File(LOGS_DIRECTORY);
 			file.mkdirs();
-			System.out.println(file);
 			PrintWriter printWriter = new PrintWriter(LOGS_DIRECTORY
 					+ File.separator + LOG_FILE_NAME + key
 					+ FILE_EXTENSION_JSON);
@@ -1327,18 +1334,20 @@ public class Monitor {
 				}
 
 				// conflict list logic
-				String fieldVersionKey = event.getFieldId() + ":"
-						+ event.getVersion();
-				if (!conflictLog.containsKey(fieldVersionKey)) {
-					HashSet<String> l = new HashSet<String>();
-					l.add(key);
-					conflictLog.put(fieldVersionKey, l);
-				} else {
-					conflictLog.get(fieldVersionKey).add(key);
+				if(event.getEventType().equals(EventType.WRITE))
+				{
+					String fieldVersionKey = event.getFieldId() + ":"
+							+ event.getVersion();
+					if (!conflictLog.containsKey(fieldVersionKey)) {
+						HashSet<String> l = new HashSet<String>();
+						l.add(key);
+						conflictLog.put(fieldVersionKey, l);
+					} else {
+						conflictLog.get(fieldVersionKey).add(key);
+					}
 				}
 			}
 			System.out.println(jsList);
-			JSONValue.toJSONString(jsList);
 			try {
 				jsList.writeJSONString(printWriter);
 			} catch (IOException e) {
