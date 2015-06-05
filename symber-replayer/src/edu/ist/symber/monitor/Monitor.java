@@ -796,7 +796,6 @@ public class Monitor {
 	 */
 	public static void beforeConditionEnter(Object lock, Object cond,
 			int monitorId, String threadId, String monitorName) {
-
 		monitorId += Parameters.numShared; // ** update monitor Id to point to
 											// the correct position in
 											// accessVector data structure
@@ -925,7 +924,6 @@ public class Monitor {
 	 */
 	public static void afterConditionEnter(Object lock, Object cond,
 			int monitorId, String threadId, String monitorName) {
-
 		try {
 			monitorId += Parameters.numShared; // ** update monitor Id to point
 												// to the correct position in
@@ -963,7 +961,9 @@ public class Monitor {
 	 */
 	public static void beforeMonitorEnter(Object o, int monitorId,
 			String threadId, String monitorName) {
-
+		if(threadId.contains("main")){
+			threadId = "0";
+		}
 		monitorId += Parameters.numShared; // ** update monitor Id to point to
 											// the correct position in
 											// accessVector data structure
@@ -1100,7 +1100,9 @@ public class Monitor {
 	 */
 	public static void afterMonitorEnter(Object o, int monitorId,
 			String threadId, String monitorName) {
-		
+		if(threadId.contains("main")){
+			threadId = "0";
+		}
 		try {
 			monitorId += Parameters.numShared - 2; // ** update monitor Id to point
 												// to the correct position in
