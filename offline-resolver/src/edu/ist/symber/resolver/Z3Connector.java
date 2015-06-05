@@ -174,6 +174,10 @@ public class Z3Connector {
 		return name;
 	}
 
+	public void reset(){
+		writeLineZ3("(reset)");
+	} 
+	
 	public String makeIntVarAndStore(String name, int min, int max) {
 		makeIntVar(name, min, max);
 		//operationsVariables.add(name);

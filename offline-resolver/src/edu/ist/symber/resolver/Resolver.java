@@ -33,6 +33,7 @@ import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import edu.ist.symber.resolver.Parameters;
 import edu.ist.symber.common.Event;
 import edu.ist.symber.common.EventType;
 import edu.ist.symber.common.Pair;
@@ -49,7 +50,7 @@ public class Resolver {
 	private static final String OUTPUT_FILE = "schedule";
 	private static final String OUTPUT_EXT = ".json";
 	private static final String SOLUTION_DIR = "z3"; 
-	private static final String SOLUTION_PATH = "\\z3Solution.txt";
+	private static final String SOLUTION_PATH = "z3Solution.txt";
 	private static Map<Integer, ArrayList<Event>> logs = new HashMap<Integer, ArrayList<Event>>();
 	private static Map<Integer, List<Event>> readDomain = new HashMap<Integer, List<Event>>();
 	private static Map<Integer, List<Event>> writeDomain = new HashMap<Integer, List<Event>>();
@@ -64,14 +65,30 @@ public class Resolver {
 	
 
 	public static void main(String[] args) {
+		if(args.length==0)
+		{
+			System.err.println("please specify: <main class> <parameters> --num-shared=<> --num-sync=<>... ");
+		}
+		else 
+		{
+			
+			for(int i = 0; i < args.length; i++){
+				if(args[i].contains("--threads")){ 
+					int numTh = Integer.valueOf(args[i].substring(args[i].indexOf("=")+1));
+					Parameters.THREADS_AMOUNT = Integer.valueOf(numTh);
+				}
+			}
+		}
 		System.out.println("Parsing logs..");
-		for (int i = 0; i <= THREADS; i++) {
+		for (int i = 0; i <= Parameters.THREADS_AMOUNT; i++) {
 			logs.put(i, parseLogs(INPUT_DIR + INPUT_FILE + i + INPUT_EXT));
 		}
 		initStructuresForAnalysis();
 		//visualiseForkJoinMemoryConstraints(1);
 		//visualiseReadOrderMemoryConstraints(1);
 		//visualiseWriteOrderMemoryConstraints(1);
+
+
 		z3.writeLineZ3("(set-option :produce-unsat-cores true)\n");
 		long startConstraints, endConstraints, startSolve, endSolve;
 		startConstraints = System.nanoTime(); 
@@ -94,8 +111,10 @@ public class Resolver {
 		endSolve = System.nanoTime(); //** end timestamp
 		double timeSolve = (((double)(endSolve - startSolve)/1000000000));
 		z3.printModel();
+		z3.writeLineZ3("(reset)\n");
 		File folder = new File(SOLUTION_DIR);
 		boolean fold = folder.mkdirs();
+		produceLogForReplayer(SOLUTION_DIR + File.separator + SOLUTION_PATH);
 		Writer writer;
 		try {
 			writer = new BufferedWriter(new FileWriter(
@@ -201,10 +220,10 @@ public class Resolver {
 			Pair<Integer, Pair<String, String>> pair = parseDefineFunEntry(m1.group());
 			result.put(pair.getFirst(), pair.getSecond());
 		}
-		/*while (m2.find()){
+		while (m2.find()){
 			Pair<Integer, Pair<String, String>> pair = parseDefineFunEntry(m2.group());
 			result.put(pair.getFirst(), pair.getSecond());
-		}*/
+		}
 		return result;
 	}
 
@@ -497,7 +516,7 @@ public class Resolver {
 			}
 		}
 		
-		for (Entry<Integer, List<Event>> joins : joinDomain.entrySet()) {
+		/*for (Entry<Integer, List<Event>> joins : joinDomain.entrySet()) {
 			for (int i = 0; i < joins.getValue().size(); i++) {
 				Event join = joins.getValue().get(i);
 				// System.out.println(join);
@@ -506,9 +525,29 @@ public class Resolver {
 						if (join.getValue().toString()
 								.equals(exits.getValue().get(j).getThreadId())) {
 							Event exit = exits.getValue().get(j);
-							/*System.out.println(exit.getOrderConstraintName()
-									+ " < " + join.getOrderConstraintName());*/
+							System.out.println(exit.getOrderConstraintName()
+									+ " < " + join.getOrderConstraintName());
 							z3.post(z3.lt(exit.getOrderConstraintName(), join.getOrderConstraintName()));
+
+						}
+
+					}
+
+				}
+			}
+		}*/
+		for (Entry<Integer, List<Event>> forks : forkDomain.entrySet()) {
+			for (int i = 0; i < forks.getValue().size(); i++) {
+				Event fork = forks.getValue().get(i);
+				System.out.println(fork);
+				for (Entry<Integer, List<Event>> starts : startDomain.entrySet()) {
+					for (int j = 0; j < starts.getValue().size(); j++) {
+						if (fork.getValue().toString()
+								.equals(starts.getValue().get(j).getThreadId())) {
+							Event start = starts.getValue().get(j);
+							System.out.println(fork.getOrderConstraintName()
+									+ " < " + start.getOrderConstraintName());
+							z3.post(z3.lt(fork.getOrderConstraintName(), start.getOrderConstraintName()));
 
 						}
 
