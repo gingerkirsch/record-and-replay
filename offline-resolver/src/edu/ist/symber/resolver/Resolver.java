@@ -14,6 +14,7 @@ import java.io.Writer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -34,6 +35,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import edu.ist.symber.resolver.Parameters;
+import edu.ist.symber.resolver.util.WriteEventComparator;
 import edu.ist.symber.common.Event;
 import edu.ist.symber.common.EventType;
 import edu.ist.symber.common.Pair;
@@ -100,6 +102,8 @@ public class Resolver {
 		} catch (NoMatchFound e) {
 			e.printStackTrace();
 		}
+		System.out.println("Create Write Versioning Constraints..");
+		createWriteVersioningConstraints();
 		System.out.println("Create Thread Constraints..");
 		createThreadConstraints();
 		endConstraints = System.nanoTime(); //** end timestamp
@@ -516,7 +520,7 @@ public class Resolver {
 			}
 		}
 		
-		/*for (Entry<Integer, List<Event>> joins : joinDomain.entrySet()) {
+		for (Entry<Integer, List<Event>> joins : joinDomain.entrySet()) {
 			for (int i = 0; i < joins.getValue().size(); i++) {
 				Event join = joins.getValue().get(i);
 				// System.out.println(join);
@@ -535,7 +539,7 @@ public class Resolver {
 
 				}
 			}
-		}*/
+		}
 		for (Entry<Integer, List<Event>> forks : forkDomain.entrySet()) {
 			for (int i = 0; i < forks.getValue().size(); i++) {
 				Event fork = forks.getValue().get(i);
@@ -559,43 +563,51 @@ public class Resolver {
 	}
 	
 	private static void createrReadWriteConstraints() throws NoMatchFound {
-		z3.writeLineZ3("(echo \"READ-WRITE CONSTRAINTS -----\")\n");
-
-		for (Entry<Integer, List<Event>> readops : readDomain.entrySet()) {
-			for (int i = 0; i < readops.getValue().size(); i++) {
-				Event read = readops.getValue().get(i);
-				Pair<Integer, Object> key = new Pair<Integer, Object>(
-						read.getFieldId(), read.getValue());
-				if (writeSetValue.containsKey(key)) {
-					if (writeSetValue.get(key).size() == 1) {
-						// exact match
-						Event write = writeSetValue.get(key).get(0);
-						z3.post(z3.lt(write.getOrderConstraintName(), read.getOrderConstraintName()));
-					} else {
-						StringBuilder constraint = new StringBuilder();
-						for (int j = 0; j < writeSetValue.get(key).size(); j++) {
-							String R = read.getOrderConstraintName();
-							Event write1 = writeSetValue.get(key).get(j);
-							String W1 = write1.getOrderConstraintName();
-							List<Event> restW = new ArrayList<Event>();
-							restW.addAll(writeSetValue.get(key));
-							restW.remove(j);
-							for (Event write2 : restW){
-								String W2 = write2.getOrderConstraintName();
-								constraint.append(z3.or(z3.and(z3.lt(R, W1),z3.or(z3.lt(W2, W1), z3.lt(R, W2))), z3.and(z3.lt(R, W2),z3.or(z3.lt(W1, W2), z3.lt(R, W1)))));
-							}
-						}
-						z3.post(z3.name(z3.and(constraint.toString()), "RW"+i));
-					}
-				} else {
-					//throw new NoMatchFound();
-					System.out.println("NoMatchFound for READ " + key);
-					continue;
-				}
-			}
-		}
-
-	}
+        z3.writeLineZ3("(echo \"READ-WRITE CONSTRAINTS -----\")\n");
+        int label = 0;
+        for (Entry<Integer, List<Event>> readops : readDomain.entrySet()) {
+                for (int i = 0; i < readops.getValue().size(); i++) {
+                        StringBuilder orStr = new StringBuilder();
+                        Event read = readops.getValue().get(i);
+                        Pair<Integer, Object> key = new Pair<Integer, Object>(
+                                        read.getFieldId(), read.getValue());
+                       
+                        if (writeSetValue.containsKey(key)) {
+                                if (writeSetValue.get(key).size() == 1) {
+                                        // exact match
+                                        Event write = writeSetValue.get(key).get(0);
+                                        z3.post(z3.lt(write.getOrderConstraintName(), read.getOrderConstraintName()));
+                                }
+                                else {
+                                        for (int j = 0; j < writeSetValue.get(key).size(); j++) {
+                                                String R = read.getOrderConstraintName();
+                                                Event write1 = writeSetValue.get(key).get(j);
+                                                String W1 = write1.getOrderConstraintName();
+                                               
+                                                List<Event> restW = new ArrayList<Event>();
+                                                restW.addAll(writeSetValue.get(key));
+                                                restW.remove(j);
+                                               
+                                                StringBuilder andStr = new StringBuilder();
+                                                andStr.append(" "+z3.lt(W1, R)); //const: Owi < Or
+                                               
+                                                for (Event write2 : restW){
+                                                        String W2 = write2.getOrderConstraintName();
+                                                        //const: Owj < Oi || Owj > Or
+                            andStr.append(" "+z3.or(z3.lt(W2,W1), z3.lt(R,W2)));
+                                                }
+                                                //const: for all wi \in W
+                            orStr.append("\n "+z3.and(andStr.toString()));
+                               
+                                        }
+                                        z3.post(z3.name(z3.or(orStr.toString()), "RW"+label++));
+                                }
+                        } else {
+                               continue;// throw new NoMatchFound();
+                        }
+                }
+        }
+}
 
 	private static void createMemoryOrderConstraints() {
 		int min = 0;
@@ -618,5 +630,38 @@ public class Resolver {
 		}
 		z3.post(z3.distinct(distinctEvents));
 	}
+	
+	private static void createWriteVersioningConstraints()
+    {
+            z3.writeLineZ3("(echo \"WRITE VERSIONING CONSTRAINTS -----\")\n");
+            int label = 0;
+            for(Map.Entry<Integer, List<Event>> entry : writeDomain.entrySet()){
+                    //Event[] sortWrites = (Event[]) entry.getValue().toArray(); //Java does not accept casts from Object[] to Event[]
+                    Event[] sortWrites = new Event[entry.getValue().size()];
+                    int i = 0;
+                    for(Event w : entry.getValue()){
+                            sortWrites[i] = w;
+                            i++;
+                    }
+                    Arrays.sort(sortWrites, new WriteEventComparator());
+                    /*System.out.print("-- Field "+entry.getKey()+":");
+                    for(Event w : sortWrites){
+                            System.out.print(w.getOrderConstraintName()+" ");
+                    }
+                    System.out.println("");*/
+                    for(i = 0; i < sortWrites.length; i++){
+                            if(i+1 >= sortWrites.length)
+                                    break;
+                            int j = i+1;
+                            Event wi = sortWrites[i];
+                            Event wj = sortWrites[j];
+                            while(wi.getVersion() == wj.getVersion()){
+                                    j++;
+                            }
+                            z3.post(z3.name(z3.lt(wi.getOrderConstraintName(),wj.getOrderConstraintName()),("WC"+label++)));
+                    }
+                    //System.out.println("");
+            }
+    }
 
 }
