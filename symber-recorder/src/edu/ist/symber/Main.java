@@ -51,7 +51,8 @@ public class Main {
 		double time = (((double)(end - start)/1000000000));
 		System.out.println("Time of recorder with logging time excluded:" +time);
 		Writer writer = new BufferedWriter(new FileWriter("recorder-without-logtime.txt", true));
-		writer.append(time + "\t");
+		writer.append(String.valueOf(time));
+		if (Monitor.STRIDEMODE) writer.append(" -stride");
 		writer.append("\r\n");
 		writer.close();//*/
 		System.out.println("\nRECORDER TIME: "+time+"s");

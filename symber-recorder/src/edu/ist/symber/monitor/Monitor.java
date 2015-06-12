@@ -702,12 +702,14 @@ public class Monitor {
 	}
 
 	public static void beforeStore(int fieldId, String threadId, int value) {
-		/*
-		 * STRIDE { if (locks.containsKey(Integer.valueOf(fieldId))) {
-		 * locks.get(Integer.valueOf(fieldId)).lock(); } else {
-		 * locks.put(Integer.valueOf(fieldId), new ReentrantLock());
-		 * locks.get(Integer.valueOf(fieldId)).lock(); } } /*
-		 */
+		if (Monitor.STRIDEMODE){
+			if (locks.containsKey(Integer.valueOf(fieldId))) {
+				locks.get(Integer.valueOf(fieldId)).lock(); 
+			} else {
+				locks.put(Integer.valueOf(fieldId), new ReentrantLock());
+				locks.get(Integer.valueOf(fieldId)).lock(); 
+				} 
+		} 
 		int version = 0;
 		try {
 			version = objVersions.get(fieldId);
@@ -729,12 +731,14 @@ public class Monitor {
 	}
 
 	public static void beforeStore(int fieldId, String threadId, long value) {
-		/*
-		 * STRIDE { if (locks.containsKey(Integer.valueOf(fieldId))) {
-		 * locks.get(Integer.valueOf(fieldId)).lock(); } else {
-		 * locks.put(Integer.valueOf(fieldId), new ReentrantLock());
-		 * locks.get(Integer.valueOf(fieldId)).lock(); } } /*
-		 */
+		if (Monitor.STRIDEMODE){
+			if (locks.containsKey(Integer.valueOf(fieldId))) {
+				locks.get(Integer.valueOf(fieldId)).lock(); 
+			} else {
+				locks.put(Integer.valueOf(fieldId), new ReentrantLock());
+				locks.get(Integer.valueOf(fieldId)).lock(); 
+				} 
+		} 
 		int version = 0;
 		try {
 			version = objVersions.get(fieldId);
@@ -756,12 +760,14 @@ public class Monitor {
 	}
 
 	public static void beforeStore(int fieldId, String threadId, double value) {
-		/*
-		 * STRIDE { if (locks.containsKey(Integer.valueOf(fieldId))) {
-		 * locks.get(Integer.valueOf(fieldId)).lock(); } else {
-		 * locks.put(Integer.valueOf(fieldId), new ReentrantLock());
-		 * locks.get(Integer.valueOf(fieldId)).lock(); } } /*
-		 */
+		if (Monitor.STRIDEMODE){
+			if (locks.containsKey(Integer.valueOf(fieldId))) {
+				locks.get(Integer.valueOf(fieldId)).lock(); 
+			} else {
+				locks.put(Integer.valueOf(fieldId), new ReentrantLock());
+				locks.get(Integer.valueOf(fieldId)).lock(); 
+				} 
+		} 
 		int version = 0;
 		try {
 			version = objVersions.get(fieldId);
@@ -1374,7 +1380,7 @@ public class Monitor {
 					}
 				}
 			}
-			System.out.println(jsList);
+			//System.out.println(jsList);
 			try {
 				jsList.writeJSONString(printWriter);
 			} catch (IOException e) {
@@ -1409,8 +1415,9 @@ public class Monitor {
 		try {
 			Writer writer = new BufferedWriter(new FileWriter("conflicts.txt",
 					true));
-			writer.append(result.getFirst() + "\t" + result.getSecond()
-					+ "\r\n");
+			writer.append(result.getFirst() + "\t" + result.getSecond());
+			if (Monitor.STRIDEMODE) writer.append("-stride");
+			writer.append("\r\n");
 			writer.close();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1426,10 +1433,12 @@ public class Monitor {
 			writer = new BufferedWriter(new FileWriter(
 					"recorder-with-logtime.txt", true));
 			writer.append(String.valueOf(time));// + "\t");
+			if (Monitor.STRIDEMODE) writer.append("-stride");
 			writer.append("\r\n");
 			writer.close();// */
 			writer = new BufferedWriter(new FileWriter("log-size.txt", true));
 			writer.append(String.valueOf(folderSize(file)));
+			if (Monitor.STRIDEMODE) writer.append("-stride");
 			writer.append("\r\n");
 			writer.close();
 			System.out.println("\nLOG SIZE: " + folderSize(file) + " bytes");

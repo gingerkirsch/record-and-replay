@@ -32,7 +32,8 @@ public class Monitor {
 	public static String methodname;
 	public static String[] mainargs;
 	//public static final String INPUT_DIR = "c:\\Users\\ASUS\\Desktop\\jars\\logs\\output";
-	public static final String INPUT_DIR = "D:\\record-and-replay\\symber-replayer\\logs";
+	public static final String INPUT_DIR = "output";
+	//public static final String INPUT_DIR = "D:\\record-and-replay\\symber-replayer\\logs";
 
 	// ** data structures for thread consistent identification
 	public volatile static HashMap<String, Integer> threadChildrenCounter; // **

@@ -12,7 +12,7 @@ public class BankBenchmark {
 
 	int l0 = INITIAL_BALANCE;
 	int l1 = INITIAL_BALANCE;
-	/*int l2 = INITIAL_BALANCE;
+	int l2 = INITIAL_BALANCE;
 	int l3 = INITIAL_BALANCE;
 	int l4 = INITIAL_BALANCE;
 	int l5 = INITIAL_BALANCE;
@@ -21,7 +21,7 @@ public class BankBenchmark {
 	int l8 = INITIAL_BALANCE;
 	int l9 = INITIAL_BALANCE;
 	int l10 = INITIAL_BALANCE;
-	int l11 = INITIAL_BALANCE;
+	/*int l11 = INITIAL_BALANCE;
 	int l12 = INITIAL_BALANCE;
 	int l13 = INITIAL_BALANCE;
 	int l14 = INITIAL_BALANCE;
@@ -224,7 +224,7 @@ public class BankBenchmark {
 		{
 		case 0: return l0;
 		case 1: return l1;
-		/*case 2: return l2;
+		case 2: return l2;
 		case 3: return l3;
 		case 4: return l4;
 		case 5: return l5;
@@ -233,7 +233,7 @@ public class BankBenchmark {
 		case 8: return l8;
 		case 9: return l9;
 		case 10: return l10;
-		case 11: return l11;
+		/*case 11: return l11;
 		case 12: return l12;
 		case 13: return l13;
 		case 14: return l14;
@@ -383,7 +383,7 @@ public class BankBenchmark {
 		{
 		case 0: l0=value; break;
 		case 1: l1=value;break;
-		/*case 2: l2=value;break;
+		case 2: l2=value;break;
 		case 3: l3=value;break;
 		case 4: l4=value;break;
 		case 5: l5=value;break;
@@ -392,7 +392,7 @@ public class BankBenchmark {
 		case 8: l8=value;break;
 		case 9: l9=value;break;
 		case 10: l10=value;break;
-		case 11: l11=value;break;
+		/*case 11: l11=value;break;
 		case 12: l12=value;break;
 		case 13: l13=value;break;
 		case 14: l14=value;break;

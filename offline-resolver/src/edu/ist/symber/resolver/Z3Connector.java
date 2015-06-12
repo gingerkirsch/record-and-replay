@@ -22,11 +22,13 @@ public class Z3Connector {
 	private static BufferedWriter bw, bsw;
 	boolean isMacOS = false;
 	//private static final String Z3_INPUT_DIR =  "c:\\Users\\ASUS\\Desktop\\jars\\z3";
-	private static final String Z3_INPUT_DIR =  "d:\\record-and-replay\\offline-resolver\\z3";
+	private static final String Z3_INPUT_DIR =  "z3";
+	//private static final String Z3_INPUT_DIR =  "d:\\record-and-replay\\offline-resolver\\z3";
 	private static final String Z3_INPUT_FILE = "\\z3InputFile";
 	private static final String Z3_INPUT_EXT = ".txt";
 	//private static final String Z3_OUTPUT_DIR =  "c:\\Users\\ASUS\\Desktop\\jars\\z3";
-	private static final String Z3_OUTPUT_DIR =  "d:\\record-and-replay\\offline-resolver\\z3";
+	private static final String Z3_OUTPUT_DIR =  "z3";
+	//private static final String Z3_OUTPUT_DIR =  "d:\\record-and-replay\\offline-resolver\\z3";
 	private static final String Z3_OUTPUT_FILE = "\\z3Solution";
 	private static final String Z3_OUTPUT_EXT = ".txt";
 
