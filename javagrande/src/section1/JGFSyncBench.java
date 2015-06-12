@@ -145,7 +145,7 @@ public class JGFSyncBench implements JGFSection1{
       Writer writer;
       try {
 			writer = new BufferedWriter(new FileWriter(
-					"original-time-data-sync.txt", true));
+					"original-time-sync.txt", true));
 			writer.append(time + "\t");
 			writer.append("\r\n");
 			writer.close();// */
