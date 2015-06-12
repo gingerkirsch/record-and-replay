@@ -213,7 +213,7 @@ public class Monitor {
 				FileReader reader = new FileReader(INPUT_DIR + File.separator + Parameters.logpath);
 				JSONParser jsonParser = new JSONParser();
 				JSONArray log = (JSONArray) jsonParser.parse(reader);
-				accessVector = new Vector[log.size()];
+				accessVector = new Vector[Parameters.numShared+Parameters.numSync];
 				//System.out.println("accessVector size " +accessVector.length);
 				// ** initialize accessVector
 				Iterator i = log.iterator();
@@ -1104,7 +1104,7 @@ public class Monitor {
 			threadId = "0";
 		}
 		try {
-			monitorId += Parameters.numShared - 2; // ** update monitor Id to point
+			monitorId += Parameters.numShared; // ** update monitor Id to point
 												// to the correct position in
 												// accessVector data structure
 			ReentrantLock monitorLock = lockVars.get(monitorId);
@@ -1163,6 +1163,10 @@ public class Monitor {
 	 */
 	public static void threadStartRun(String threadId) {
 		try {
+			if (threadChildrenCounter.containsKey(threadId)) {
+				return;
+			}
+
 			threadChildrenCounter.put(threadId, 1);
 			MapBackupThreadName.put(Thread.currentThread(), threadId);
 
@@ -1176,6 +1180,7 @@ public class Monitor {
 	}
 
 	public static void threadExitRun(String threadId) {
+		System.out.println("EXIT-" + threadId);
 	}
 
 	/**
@@ -1191,8 +1196,7 @@ public class Monitor {
 	public synchronized static void startRunThreadBefore(Thread t,
 			String parentId) {
 		try {
-			if(parentId.contains("main")) 
-				parentId = "0";
+			parentId = Thread.currentThread().getName();
 			int childCounter = threadChildrenCounter.get(parentId);
 			String newThreadName;
 
@@ -1214,6 +1218,6 @@ public class Monitor {
 	}
 
 	public synchronized static void joinRunThreadAfter(Thread t, String threadId) {
-
+		System.out.println("JOIN-" + t.getName() + "-" + threadId);
 	}
 }
