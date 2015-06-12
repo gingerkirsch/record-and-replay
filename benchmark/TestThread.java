@@ -12,30 +12,14 @@ public class TestThread extends Thread{
 	public void run() {  
 		try 
 		{
-			int it = 5;
-			while(it>0) 
+			for (int i = 0; i < BankApp.NUM_OPS/BankApp.NUM_THREADS; i++) 
 			{
-				if (it%2==0) {
-					for (int i = 0; i < 30; i++) 
-					{
-						final int srcIndex = (i*(it+1))%bank.numAccounts;
-						final int dstIndex = ((i+1)*(it+2))%bank.numAccounts;
-						bank.transfer(srcIndex, dstIndex);
-					}
-				} 
-				else 
-				{
-					try{
-						this.sanityCheck();	
-					}
-					catch(Exception e)
-					{
-						"Crashed_with".equals(e);
-						BankApp.hasbug = true;
-					}
-				}
-				it--;
+				final int srcIndex = i%bank.numAccounts;
+				final int dstIndex = (i+1)%bank.numAccounts;
+				bank.transfer(srcIndex, dstIndex);
 			}
+			
+			this.sanityCheck();
 		} 
 		catch (Exception g) 
 		{
@@ -45,7 +29,7 @@ public class TestThread extends Thread{
 
 	public void sanityCheck() throws Exception{
 		if (!bank.checkBalances()) {
-			throw new Exception();
+			BankApp.hasbug = true;
 		}
 	}
 }

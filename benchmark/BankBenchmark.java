@@ -1,16 +1,18 @@
 package benchmark;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 import benchmark.TestThread;
 
 public class BankBenchmark {
 
 	protected static final int INITIAL_BALANCE = 1000;
 	protected int numAccounts = BankApp.DEFAULT_NUM_ACCOUNTS;
-
+	protected static ReentrantLock lock = new ReentrantLock();
 
 	int l0 = INITIAL_BALANCE;
 	int l1 = INITIAL_BALANCE;
-	int l2 = INITIAL_BALANCE;
+	/*int l2 = INITIAL_BALANCE;
 	int l3 = INITIAL_BALANCE;
 	int l4 = INITIAL_BALANCE;
 	int l5 = INITIAL_BALANCE;
@@ -165,7 +167,10 @@ public class BankBenchmark {
 
 	public void transfer(int srcAccount, int dstAccount) {
 
-
+		//if(srcAccount>0 && dstAccount>0){
+			//lock.lock();
+		//}
+		
 		int srcAmount = get(Math.abs(srcAccount % numAccounts));
 		int amountToTransfer = srcAmount / 10;
 
@@ -173,6 +178,9 @@ public class BankBenchmark {
 
 		int dstAmount = get(Math.abs(dstAccount % numAccounts));
 		set(Math.abs(dstAccount % numAccounts), dstAmount + amountToTransfer);	
+		//if(srcAccount>0 && dstAccount>0){
+			//lock.unlock();
+		//}
 	}
 
 
@@ -187,12 +195,14 @@ public class BankBenchmark {
 
 
 	public boolean checkBalances() {
+		lock.lock();
 		int sum = sumBalances();
 		if (sum != (INITIAL_BALANCE * numAccounts)) {
-			System.out.printf("Bug : The sumBalances returned a value (%d) different than it should (%d)!\n", sum, (INITIAL_BALANCE * numAccounts));
-
+			System.out.printf("[Bug] The sumBalances returned a value (%d) different than it should (%d)!\n", sum, (INITIAL_BALANCE * numAccounts));
+			lock.unlock();
 			return false;
 		}
+		lock.unlock();
 		return true;
 	}
 
@@ -214,7 +224,7 @@ public class BankBenchmark {
 		{
 		case 0: return l0;
 		case 1: return l1;
-		case 2: return l2;
+		/*case 2: return l2;
 		case 3: return l3;
 		case 4: return l4;
 		case 5: return l5;
@@ -373,7 +383,7 @@ public class BankBenchmark {
 		{
 		case 0: l0=value; break;
 		case 1: l1=value;break;
-		case 2: l2=value;break;
+		/*case 2: l2=value;break;
 		case 3: l3=value;break;
 		case 4: l4=value;break;
 		case 5: l5=value;break;

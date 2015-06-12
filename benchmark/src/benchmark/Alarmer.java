@@ -13,7 +13,12 @@ public class Alarmer {
 		 alarm = new Timer();
 		 long delay;
          Random r = new Random();
-         int t = r.nextInt(4) + 1;         
+         int t = r.nextInt(5);
+         while(t < 1)
+         {
+        	 t = r.nextInt(5);
+         }
+         
          delay = (long)(t*100); 
          System.out.println("delay: "+delay);
          try{
